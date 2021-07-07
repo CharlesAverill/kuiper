@@ -7,7 +7,7 @@ def main(stdscr):
     global sess
     stdscr.clear()
 
-    stdscr.border()
+    stdscr.box()
 
     # This raises ZeroDivisionError when i == 10.
     for i in range(0, 9):

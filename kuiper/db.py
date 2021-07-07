@@ -1,4 +1,4 @@
-from models import User, Post
+from .models import User, Post
 
 
 def register(name, age, major, session):

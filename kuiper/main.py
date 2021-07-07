@@ -1,7 +1,13 @@
-from init_db import init_db
-from db import register, create_post
-from tui import start_tui
+from .init_db import init_db
+from .db import register, create_post
+from .tui import start_tui
 
-sess = init_db()
 
-start_tui(sess)
+def main():
+    sess = init_db()
+
+    start_tui(sess)
+
+
+if __name__ == "__main__":
+    main()

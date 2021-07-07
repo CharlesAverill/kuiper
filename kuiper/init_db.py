@@ -1,6 +1,6 @@
 from yaml import load, FullLoader
 
-from models import Base
+from .models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

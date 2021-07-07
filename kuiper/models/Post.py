@@ -10,6 +10,7 @@ from .User import User
 class Post(Base):
     id = Column(Integer, primary_key=True)
 
+    title = Column(UnicodeText, nullable=False)
     content = Column(UnicodeText, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=now())
 
@@ -21,4 +22,5 @@ class Post(Base):
     def __str__(self):
         return f"ID: {self.id}\n" \
                f"User ID: {self.user_id}\n" \
+               f"Title: {self.title}\n" \
                f"---Content---\n{self.content}\n-------------"

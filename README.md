@@ -2,6 +2,13 @@
 
 A terminal-based dating application for UTD students
 
+## Usage
+To install: `$ pip install kuiper`
+
+To start the TUI: `$ kuiper`
+
+To view the help menu: `$ kuiper -h`
+
 ## Inspiration
 [UTD Bruh Moments IG Post](https://www.instagram.com/p/CRCJhEmpbI0/)
 

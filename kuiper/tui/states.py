@@ -6,10 +6,12 @@ class WindowState(Enum):
     REGISTER = 2
     LOGOUT = 3
 
-    POSTS_VIEW = 4
-    NEW_POST_VIEW = 5
+    FORUM_VIEW = 4
+    POST_VIEW = 5
+    NEW_POST_VIEW = 6
 
-    ACCOUNT_DETAILS = 6
+    ACCOUNT_DETAILS = 7
+    HELP_MENU = 8
 
 
 class LoginState(Enum):

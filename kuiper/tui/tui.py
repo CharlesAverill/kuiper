@@ -19,11 +19,12 @@ class TUI:
     UP = -1
     DOWN = 1
 
-    def __init__(self, stdscr, state, sess, items):
+    def __init__(self, stdscr, state, sess, items, user=None):
         self.window = stdscr
         self.state = state
         self.sess = sess
         self.items = items
+        self.user = user
 
         self.sub_state = None
 
@@ -51,7 +52,7 @@ class TUI:
         self.display_states = {
             WindowState.LOGIN: (vlogin, ilogin),
             WindowState.REGISTER: (vregister, iregister),
-            WindowState.POSTS_VIEW: (vforum, iforum),
+            WindowState.FORUM_VIEW: (vforum, iforum),
         }
 
         self.states_dicts = {

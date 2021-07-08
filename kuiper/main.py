@@ -1,6 +1,6 @@
 import argparse
 
-from .init_db import init_db
+from .db import init_db
 from .tui import start_tui
 
 ascii_art = r"""

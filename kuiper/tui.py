@@ -29,11 +29,10 @@ class WindowState(Enum):
 
 
 class LoginState(Enum):
-    INIT = 1
-    USERNAME_SUBMITTED = 2
-    PASSWORD_SUBMITTED = 3
-    SUBMIT_LOGIN = 4
-    LOGGED_IN = 5
+    USERNAME = 1
+    PASSWORD = 2
+    LOGIN = 3
+    REGISTER = 4
 
 
 class TUI:
@@ -45,7 +44,7 @@ class TUI:
         self.state = state
         self.items = items
 
-        self.login_state = LoginState.INIT
+        self.login_state = LoginState.USERNAME
 
         self.window.keypad(True)
 
@@ -72,14 +71,21 @@ class TUI:
             WindowState.POSTS_VIEW: self.forum_display
         }
 
-        self.login_states_next = {
-            LoginState.INIT: LoginState.USERNAME_SUBMITTED,
-            LoginState.USERNAME_SUBMITTED: LoginState.PASSWORD_SUBMITTED,
-            LoginState.PASSWORD_SUBMITTED: LoginState.SUBMIT_LOGIN,
-            LoginState.SUBMIT_LOGIN: LoginState.LOGGED_IN
+        self.login_states_dict = {
+            LoginState.USERNAME: "username",
+            LoginState.PASSWORD: "password",
+            LoginState.LOGIN: None,
+            LoginState.REGISTER: None
         }
+
+        self.login_states_list = [
+            LoginState.USERNAME,
+            LoginState.PASSWORD,
+            LoginState.LOGIN,
+            LoginState.REGISTER
+        ]
         
-        self.buffers = []
+        self.buffers = {}
         self.current_buf = ""
         self.reading_shorthand_input = False
         self.shorthand_input_password_mode = False
@@ -96,19 +102,19 @@ class TUI:
     def input_stream(self):
         """Waiting an input and run a proper method according to type of input"""
         while True:
-            if self.state == WindowState.LOGIN and self.login_state == LoginState.INIT:
-                self.reading_shorthand_input = True
-                self.shorthand_input_password_mode = False
-
             display_func = self.display_states[self.state]
             display_func()
 
             ch = self.window.getch()
             unctrl = ascii.unctrl(ch)
 
-            if self.reading_shorthand_input:
-                if ascii.isalnum(ch):
-                    self.current_buf += unctrl
+            if self.state == WindowState.LOGIN:
+                # Enable/disable shorthand/password input
+                self.reading_shorthand_input = self.login_state in [LoginState.USERNAME, LoginState.PASSWORD]
+                self.shorthand_input_password_mode = self.login_state == LoginState.PASSWORD
+
+            if self.reading_shorthand_input and ascii.isalnum(ch):
+                self.current_buf += unctrl
 
             if ch == ascii.ESC:
                 break
@@ -118,6 +124,7 @@ class TUI:
                 self.max_lines = self.height - 2
                 self.page = self.bottom // self.max_lines
 
+            # Forum Page
             if self.state == WindowState.POSTS_VIEW:
                 if ch == curses.KEY_UP:
                     self.scroll(self.UP)
@@ -127,16 +134,36 @@ class TUI:
                     self.paging(self.UP)
                 elif ch == curses.KEY_RIGHT:
                     self.paging(self.DOWN)
+            # Login Page
             elif self.state == WindowState.LOGIN:
+                # Check for field changes, save to the buffers dictionary if changed, jump to next/prev field
+                if ch == curses.KEY_UP:
+                    self.buffers[self.login_state] = self.current_buf
+                    self.login_state = self.login_states_list[self.login_states_list.index(self.login_state) - 1]
+                    self.current_buf = self.buffers[self.login_state] if self.login_state in self.buffers.keys() else ""
+                elif ch == curses.KEY_DOWN:
+                    self.buffers[self.login_state] = self.current_buf
+                    idx = self.login_states_list.index(self.login_state) + 1
+                    self.login_state = self.login_states_list[0 if idx > len(self.login_states_list) - 1 else idx]
+                    self.current_buf = self.buffers[self.login_state] if self.login_state in self.buffers.keys() else ""
+                # Carriage Return
                 if ch == curses.KEY_ENTER or unctrl == "^J":
-                    self.buffers.append(self.current_buf)
-                    self.current_buf = ""
-                    self.login_state = self.login_states_next[self.login_state]
+                    # Login
+                    if self.login_state == LoginState.LOGIN:
+                        exit(f"Logging in: {self.buffers}")
+                    # Go to registration
+                    elif self.login_state == LoginState.REGISTER:
+                        exit("Go to registration")
+                    # Go to next field
+                    else:
+                        self.buffers[self.login_state] = self.current_buf
+                        idx = self.login_states_list.index(self.login_state) + 1
+                        self.login_state = self.login_states_list[
+                            0 if idx > len(self.login_states_list) - 1 else idx]
+                        self.current_buf = self.buffers[self.login_state] if self.login_state in self.buffers.keys() else ""
+                # Backspace
                 elif ch == curses.KEY_BACKSPACE or unctrl == "^?":
                     self.current_buf = self.current_buf[:-1]
-                if self.login_state == LoginState.SUBMIT_LOGIN:
-                    self.buffers = self.buffers[:-1]
-                    exit(f"Logging in: {self.buffers}")
 
     def scroll(self, direction):
         """Scrolling the window when pressing up/down arrow keys"""
@@ -194,7 +221,7 @@ class TUI:
     def shorthand_input(self):
         self.window.addstr(self.max_lines,
                            1,
-                           self.current_buf if not self.shorthand_input_password_mode else "*" * len(self.current_buf),
+                           "$ " + (self.current_buf if not self.shorthand_input_password_mode else "*" * len(self.current_buf)),
                            curses.color_pair(2))
 
     def login_display(self):
@@ -209,29 +236,25 @@ class TUI:
                                             "https://github.com/CharlesAverill/kuiper", 3)
 
         # Username label and field
-        if self.login_state == LoginState.INIT:
-            color_pair = 2
-        else:
-            color_pair = 1
-            self.window.addstr(5, 13, self.buffers[0], curses.color_pair(color_pair))
+        color_pair = 2 if self.login_state == LoginState.USERNAME else 1
+        if LoginState.USERNAME in self.buffers.keys():
+            self.window.addstr(5, 13, self.buffers[LoginState.USERNAME], curses.color_pair(color_pair))
         self.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
 
-        color_pair = 1
         # Password label and field
-        if self.login_state == LoginState.USERNAME_SUBMITTED:
-            color_pair = 2
-        elif len(self.buffers) > 0:
-            color_pair = 1
-            self.window.addstr(6, 13, "*" * len(self.buffers[1]), curses.color_pair(color_pair))
-        self.window.addstr(6, 3, "Password:", curses.color_pair(2 if self.login_state == LoginState.USERNAME_SUBMITTED
-                                                                else 1))
-        if self.login_state == LoginState.PASSWORD_SUBMITTED:
-            self.add_center_string(self.window, "Press Enter to Log In", self.height - 4, color_pair_index=2)
-        else:
-            self.add_center_string(self.window,
-                                   "Press Enter to enter " +
-                                        ("username" if self.login_state == LoginState.INIT else "password"),
-                                   self.height - 4)
+        color_pair = 2 if self.login_state == LoginState.PASSWORD else 1
+        if LoginState.PASSWORD in self.buffers.keys():
+            self.window.addstr(6, 13, "*" * len(self.buffers[LoginState.PASSWORD]), curses.color_pair(color_pair))
+        self.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
+
+        # Login button
+        self.window.addstr(8, 3, "Login", curses.color_pair(2 if self.login_state == LoginState.LOGIN else 1))
+
+        # Register button
+        self.window.addstr(9, 3, "Register", curses.color_pair(2 if self.login_state == LoginState.REGISTER else 1))
+
+        self.reading_shorthand_input = self.login_state in [LoginState.USERNAME, LoginState.PASSWORD]
+        self.shorthand_input_password_mode = self.login_state == LoginState.PASSWORD
 
         if self.reading_shorthand_input:
             self.shorthand_input()

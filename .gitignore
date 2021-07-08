@@ -1,2 +1,3 @@
 *.lock
 *.db
+kuiper/tui/__pycache__

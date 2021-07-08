@@ -3,11 +3,11 @@
 A terminal-based dating application for UTD students, built with the `curses` api
 
 ## Usage
-To install: `$ pip install kuiper`
-
-To start the TUI: `$ kuiper`
-
-To view the help menu: `$ kuiper -h`
+```bash
+$ pip install kuiper # Install
+$ kuiper             # Start the TUI
+$ kuiper -h          # View the help menu
+```
 
 ## Inspiration
 [UTD Bruh Moments IG Post](https://www.instagram.com/p/CRCJhEmpbI0/)

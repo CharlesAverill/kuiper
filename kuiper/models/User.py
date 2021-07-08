@@ -8,6 +8,8 @@ from . import Base
 
 class User(Base):
     id = Column(Integer, primary_key=True)
+    username = Column(Text(length=20))
+    password = Column(Text(length=40))
 
     name = Column(Text(length=40), nullable=False)
     age = Column(Integer, nullable=False)
@@ -20,6 +22,7 @@ class User(Base):
 
     def __str__(self):
         out = f"ID: {self.id}\n" \
+              f"Username: {self.username}\n" \
               f"Name: {self.name}\n" \
               f"Age: {self.age}"
 

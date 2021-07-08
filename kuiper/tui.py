@@ -4,18 +4,49 @@ License: https://github.com/mingrammer/python-curses-scroll-example/blob/master/
 """
 
 import curses
-from curses import wrapper
+import subprocess
+import tempfile
+
+from curses import wrapper, textpad
 from curses import ascii
 
+from enum import Enum
+
+from . import __version__
+
 sess = None
+
+
+class WindowState(Enum):
+    LOGIN = 1
+    REGISTER = 2
+    LOGOUT = 3
+
+    POSTS_VIEW = 4
+    NEW_POST_VIEW = 5
+
+    ACCOUNT_DETAILS = 6
+
+
+class LoginState(Enum):
+    INIT = 1
+    USERNAME_SUBMITTED = 2
+    PASSWORD_SUBMITTED = 3
+    SUBMIT_LOGIN = 4
+    LOGGED_IN = 5
 
 
 class TUI:
     UP = -1
     DOWN = 1
 
-    def __init__(self, stdscr, items):
+    def __init__(self, stdscr, state, items):
         self.window = stdscr
+        self.state = state
+        self.items = items
+
+        self.login_state = LoginState.INIT
+
         self.window.keypad(True)
 
         curses.noecho()
@@ -30,13 +61,28 @@ class TUI:
 
         self.height, self.width = self.window.getmaxyx()
 
-        self.items = items
-
         self.max_lines = curses.LINES - 2
         self.top = 0
         self.bottom = len(self.items)
         self.current = 0
         self.page = self.bottom // self.max_lines
+
+        self.display_states = {
+            WindowState.LOGIN: self.login_display,
+            WindowState.POSTS_VIEW: self.forum_display
+        }
+
+        self.login_states_next = {
+            LoginState.INIT: LoginState.USERNAME_SUBMITTED,
+            LoginState.USERNAME_SUBMITTED: LoginState.PASSWORD_SUBMITTED,
+            LoginState.PASSWORD_SUBMITTED: LoginState.SUBMIT_LOGIN,
+            LoginState.SUBMIT_LOGIN: LoginState.LOGGED_IN
+        }
+        
+        self.buffers = []
+        self.current_buf = ""
+        self.reading_shorthand_input = False
+        self.shorthand_input_password_mode = False
 
     def run(self):
         """Continue running the TUI until get interrupted"""
@@ -50,22 +96,47 @@ class TUI:
     def input_stream(self):
         """Waiting an input and run a proper method according to type of input"""
         while True:
-            self.display()
+            if self.state == WindowState.LOGIN and self.login_state == LoginState.INIT:
+                self.reading_shorthand_input = True
+                self.shorthand_input_password_mode = False
+
+            display_func = self.display_states[self.state]
+            display_func()
 
             ch = self.window.getch()
-            if ch == curses.KEY_UP:
-                self.scroll(self.UP)
-            elif ch == curses.KEY_DOWN:
-                self.scroll(self.DOWN)
-            elif ch == curses.KEY_LEFT:
-                self.paging(self.UP)
-            elif ch == curses.KEY_RIGHT:
-                self.paging(self.DOWN)
-            elif ch == curses.KEY_RESIZE:
-                self.max_lines = self.window.getmaxyx()[0] - 2
-                self.page = self.bottom // self.max_lines
-            elif ch == ascii.ESC:
+            unctrl = ascii.unctrl(ch)
+
+            if self.reading_shorthand_input:
+                if ascii.isalnum(ch):
+                    self.current_buf += unctrl
+
+            if ch == ascii.ESC:
                 break
+
+            elif ch == curses.KEY_RESIZE:
+                self.height, self.width = self.window.getmaxyx()
+                self.max_lines = self.height - 2
+                self.page = self.bottom // self.max_lines
+
+            if self.state == WindowState.POSTS_VIEW:
+                if ch == curses.KEY_UP:
+                    self.scroll(self.UP)
+                elif ch == curses.KEY_DOWN:
+                    self.scroll(self.DOWN)
+                elif ch == curses.KEY_LEFT:
+                    self.paging(self.UP)
+                elif ch == curses.KEY_RIGHT:
+                    self.paging(self.DOWN)
+            elif self.state == WindowState.LOGIN:
+                if ch == curses.KEY_ENTER or unctrl == "^J":
+                    self.buffers.append(self.current_buf)
+                    self.current_buf = ""
+                    self.login_state = self.login_states_next[self.login_state]
+                elif ch == curses.KEY_BACKSPACE or unctrl == "^?":
+                    self.current_buf = self.current_buf[:-1]
+                if self.login_state == LoginState.SUBMIT_LOGIN:
+                    self.buffers = self.buffers[:-1]
+                    exit(f"Logging in: {self.buffers}")
 
     def scroll(self, direction):
         """Scrolling the window when pressing up/down arrow keys"""
@@ -114,7 +185,60 @@ class TUI:
             self.top += self.max_lines
             return
 
-    def display(self):
+    def add_center_string(self, window, string, voffset, color_pair_index=1):
+        _, x = window.getmaxyx()
+        # Clip string so it doesn't go out of bounds
+        string = string[:x - 2]
+        window.addstr(voffset, int((self.width / 2) - len(string) / 2), string, curses.color_pair(color_pair_index))
+
+    def shorthand_input(self):
+        self.window.addstr(self.max_lines,
+                           1,
+                           self.current_buf if not self.shorthand_input_password_mode else "*" * len(self.current_buf),
+                           curses.color_pair(2))
+
+    def login_display(self):
+        """Display login prompt"""
+        self.window.erase()
+        self.window.box()
+
+        # Login Header
+        self.add_center_string(self.window, f"Kuiper {__version__}", 1)
+        self.add_center_string(self.window, "A terminal-based dating application for UTD Students", 2)
+        self.add_center_string(self.window, "Charles Averill - charles.averill@utdallas.edu - "
+                                            "https://github.com/CharlesAverill/kuiper", 3)
+
+        # Username label and field
+        if self.login_state == LoginState.INIT:
+            color_pair = 2
+        else:
+            color_pair = 1
+            self.window.addstr(5, 13, self.buffers[0], curses.color_pair(color_pair))
+        self.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
+
+        color_pair = 1
+        # Password label and field
+        if self.login_state == LoginState.USERNAME_SUBMITTED:
+            color_pair = 2
+        elif len(self.buffers) > 0:
+            color_pair = 1
+            self.window.addstr(6, 13, "*" * len(self.buffers[1]), curses.color_pair(color_pair))
+        self.window.addstr(6, 3, "Password:", curses.color_pair(2 if self.login_state == LoginState.USERNAME_SUBMITTED
+                                                                else 1))
+        if self.login_state == LoginState.PASSWORD_SUBMITTED:
+            self.add_center_string(self.window, "Press Enter to Log In", self.height - 4, color_pair_index=2)
+        else:
+            self.add_center_string(self.window,
+                                   "Press Enter to enter " +
+                                        ("username" if self.login_state == LoginState.INIT else "password"),
+                                   self.height - 4)
+
+        if self.reading_shorthand_input:
+            self.shorthand_input()
+
+        self.window.refresh()
+
+    def forum_display(self):
         """Display the items on window"""
         self.window.erase()
         self.window.box()
@@ -132,11 +256,19 @@ class TUI:
                 continue
         self.window.refresh()
 
+    def update_items(self, new_items):
+        self.items = new_items
+        self.top = 0
+        self.bottom = len(self.items)
+        self.current = 0
+        self.page = self.bottom // self.max_lines
+
 
 def main(stdscr):
     global sess
 
-    tui = TUI(stdscr, [f"Line {i}" for i in range(1, 501)])
+    state = WindowState.LOGIN
+    tui = TUI(stdscr, state, [f"Line {i}" for i in range(1, 501)])
 
     tui.run()
 

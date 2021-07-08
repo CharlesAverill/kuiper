@@ -1,7 +1,8 @@
 [tool.poetry]
 name = "kuiper"
-version = "0.2.4"
+version = "0.2.7"
 description = "A terminal-based dating application for UTD students"
+readme = "README.md"
 authors = ["CharlesAverill <charlesaverill20@gmail.com>"]
 include = ["config.yaml"]
 

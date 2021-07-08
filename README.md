@@ -1,6 +1,6 @@
 # Kuiper
 
-A terminal-based dating application for UTD students
+A terminal-based dating application for UTD students, built with the `curses` api
 
 ## Usage
 To install: `$ pip install kuiper`

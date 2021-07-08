@@ -1,6 +1,6 @@
 from .init_db import init_db
-from .db import register, create_post
 from .tui import start_tui
+from .models import User
 
 
 def main():

@@ -1,10 +1,12 @@
 from .models import User, Post
 
 
-def register(name, age, major, session):
+def register(email, username, password, age, major, session):
     u = User()
 
-    u.name = name
+    u.email = email
+    u.username = username
+    u.password = password
     u.age = age
     u.major = major
 

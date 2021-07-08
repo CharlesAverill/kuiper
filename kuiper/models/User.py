@@ -8,12 +8,12 @@ from . import Base
 
 class User(Base):
     id = Column(Integer, primary_key=True)
+    email = Column(Text)
     username = Column(Text(length=20))
-    password = Column(Text(length=40))
+    password = Column(Text(length=20))
 
-    name = Column(Text(length=40), nullable=False)
-    age = Column(Integer, nullable=False)
-    major = Column(Text(length=40))
+    age = Column(Integer)
+    major = Column(Text(length=20))
 
     post = relationship("Post", back_populates="user")
     created_at = Column(DateTime(timezone=True), nullable=False, default=now())
@@ -23,7 +23,7 @@ class User(Base):
     def __str__(self):
         out = f"ID: {self.id}\n" \
               f"Username: {self.username}\n" \
-              f"Name: {self.name}\n" \
+              f"Email: {self.email}\n" \
               f"Age: {self.age}"
 
         if self.major:

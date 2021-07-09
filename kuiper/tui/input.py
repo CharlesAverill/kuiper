@@ -86,11 +86,17 @@ def iregister(TUI, ch):
 
 
 def iforum(TUI, ch):
-    unctrl = ascii.unctrl(ch)
+    unctrl = curses.ascii.unctrl(ch)
     if ch == curses.KEY_UP:
         TUI.scroll(TUI.UP)
     elif ch == curses.KEY_DOWN:
         TUI.scroll(TUI.DOWN)
+    """
+    elif ch == curses.KEY_LEFT:
+        TUI.paging(TUI.UP)
+    elif ch == curses.KEY_RIGHT:
+        TUI.paging(TUI.DOWN)
+    """
     if not TUI.reading_shorthand_input:
         if ch == curses.KEY_ENTER or unctrl == "^J":
             exit("Select")
@@ -107,9 +113,3 @@ def iforum(TUI, ch):
         elif str(ch) == "l":
             TUI.user = None
             TUI.update_state(WindowState.LOGIN)
-    """
-    elif ch == curses.KEY_LEFT:
-        TUI.paging(TUI.UP)
-    elif ch == curses.KEY_RIGHT:
-        TUI.paging(TUI.DOWN)
-    """

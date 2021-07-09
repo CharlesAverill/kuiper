@@ -4,6 +4,7 @@ from .states import LoginState, RegisterState
 from .utils import add_center_string
 
 import curses
+import itertools
 
 
 def vlogin(TUI):
@@ -18,7 +19,7 @@ def vlogin(TUI):
     add_center_string(TUI, f"Kuiper {__version__}", 1)
     add_center_string(TUI, "A terminal-based dating application for UTD Students", 2)
     add_center_string(TUI, "Charles Averill - charles.averill@utdallas.edu - "
-                                      "https://github.com/CharlesAverill/kuiper", 3)
+                           "https://github.com/CharlesAverill/kuiper", 3)
 
     # Username label and field
     color_pair = 2 if TUI.sub_state == LoginState.USERNAME else 1
@@ -92,7 +93,8 @@ def vregister(TUI):
     TUI.window.addstr(11, 3, "Register", curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
 
     # Back to Login screen
-    TUI.window.addstr(12, 3, "Back to Login", curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
+    TUI.window.addstr(12, 3, "Back to Login",
+                      curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
 
     TUI.reading_shorthand_input = TUI.sub_state not in [RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN]
     TUI.shorthand_input_password_mode = TUI.sub_state == RegisterState.PASSWORD
@@ -108,13 +110,52 @@ def vforum(TUI):
     TUI.window.erase()
     TUI.window.box()
 
+    # Set up structure
+    vert = "│"
+    horz = "─"
+    topi = "┬"
+    boti = "┴"
+    riti = "┤"
+    lfti = "├"
+
+    # 20% Line
+    border_20_percent = int(TUI.width * .3)
+
+    for idx in range(TUI.height - 2):
+        if idx == 0:
+            # Top intersection character
+            border_20_percent_char = topi
+            offset = -1
+            TUI.window.addstr(idx + 1, border_20_percent, vert, curses.color_pair(4))
+        elif idx == TUI.height - 3:
+            # Bottom intersection character
+            border_20_percent_char = boti
+            offset = 1
+            TUI.window.addstr(idx + 1, border_20_percent, vert, curses.color_pair(4))
+        else:
+            # Plain vertical character
+            border_20_percent_char = vert
+            offset = 0
+        TUI.window.addstr(idx + 1 + offset, border_20_percent, border_20_percent_char, curses.color_pair(4))
+
+    # Posts Header
+    add_center_string(TUI, "Posts", 1, border_20_percent, color_pair_index=4)
+    TUI.window.addstr(2, 0, lfti + horz * (border_20_percent - 1) + riti, curses.color_pair(4))
+
+    # Content / Comments splitter
+    TUI.window.addstr(int(TUI.height / 2),
+                      border_20_percent,
+                      lfti + horz * (TUI.width - border_20_percent - 2) + riti,
+                      curses.color_pair(4))
+    add_center_string(TUI, "Comments", int(TUI.height / 2) + 1, min_x=border_20_percent, color_pair_index=4)
+
     for idx, item in enumerate(TUI.items[TUI.top:TUI.top + TUI.max_lines]):
         try:
             # Highlight the current cursor line
-            if idx == TUI.current:
-                TUI.window.addstr(idx + 1, 2, item, curses.color_pair(2))
+            if TUI.current <= idx <= TUI.current + 2:
+                TUI.window.addstr(idx + 4, 2, item[:border_20_percent - 2], curses.color_pair(2))
             else:
-                TUI.window.addstr(idx + 1, 1, item, curses.color_pair(1))
+                TUI.window.addstr(idx + 4, 1, item[:border_20_percent - 1], curses.color_pair(1))
         except curses.error:
             # This occurs when there aren't enough terminal lines to render the requested items, happens
             # when users resize window too quickly

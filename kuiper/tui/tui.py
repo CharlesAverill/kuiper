@@ -3,27 +3,29 @@ Based on https://github.com/mingrammer/python-curses-scroll-example
 License: https://github.com/mingrammer/python-curses-scroll-example/blob/master/LICENSE
 """
 
-import curses
-
 from curses import wrapper
 from curses import ascii
 
 from .views import *
 from .input import *
 from .states import WindowState, LoginState
+from ..models import Post, User
 
 sess = None
 
 
 class TUI:
-    UP = -1
-    DOWN = 1
+    UP = -3
+    DOWN = 3
 
-    def __init__(self, stdscr, state, sess, items, user=None):
+    def __init__(self, stdscr, state, session, posts, user=None):
         self.window = stdscr
         self.state = state
-        self.sess = sess
-        self.items = items
+        self.sess = session
+        self.items = []
+        self.posts = posts
+        for post in self.posts:
+            self.items.extend(str(post).split("\n"))
         self.user = user
 
         self.sub_state = None
@@ -35,15 +37,16 @@ class TUI:
         curses.curs_set(0)
 
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)
+        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Normal text
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)  # Highlighted text
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)    # Flash text
+        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Border stuff
 
         self.current = curses.color_pair(2)
 
         self.height, self.width = self.window.getmaxyx()
 
-        self.max_lines = curses.LINES - 2
+        self.max_lines = curses.LINES - 5
         self.top = 0
         self.bottom = len(self.items)
         self.current = 0
@@ -119,28 +122,31 @@ class TUI:
                 flash(self, self.flashing)
 
             ch = self.window.getch()
-            unctrl = ascii.unctrl(ch)
+
+            unctrl = curses.ascii.unctrl(ch)
 
             if self.flashing is not None and (ch == curses.KEY_ENTER or unctrl == "^J"):
                 self.flashing = None
                 continue
 
             if self.reading_shorthand_input and self.input_verification(ch):
-                if self.max_input_len is None or (self.max_input_len is not None and len(self.current_buf) < self.max_input_len):
+                if self.max_input_len is None or (
+                        self.max_input_len is not None and len(self.current_buf) < self.max_input_len):
                     self.current_buf += unctrl
                 else:
                     curses.beep()
-            if ch == curses.KEY_BACKSPACE or unctrl == "^?":
+            if self.reading_shorthand_input and ch == curses.KEY_BACKSPACE or unctrl == "^?":
                 # Backspace
                 self.current_buf = self.current_buf[:-1]
 
-            if ch == ascii.ESC:
+            elif ch == ascii.ESC:
                 break
 
             elif ch == curses.KEY_RESIZE:
                 self.height, self.width = self.window.getmaxyx()
-                self.max_lines = self.height - 2
+                self.max_lines = self.height - 5
                 self.page = self.bottom // self.max_lines
+                continue
 
             input_func(self, ch)
 
@@ -182,12 +188,12 @@ class TUI:
         # Page up
         # if current page is not a first page, page up is possible
         # top position can not be negative, so if top position is going to be negative, we should set it as 0
-        if (direction == self.UP) and (current_page > 0):
+        if (direction == int(self.UP / 3)) and (current_page > 0):
             self.top = max(0, self.top - self.max_lines)
             return
         # Page down
         # if current page is not a last page, page down is possible
-        if (direction == self.DOWN) and (current_page < self.page):
+        if (direction == int(self.DOWN / 3)) and (current_page < self.page):
             self.top += self.max_lines
             return
 
@@ -221,8 +227,45 @@ class TUI:
 def main(stdscr):
     global sess
 
-    state = WindowState.LOGIN
-    tui = TUI(stdscr, state, sess, [f"Line {i}" for i in range(1, 501)])
+    u = User()
+    u.username = "Charles"
+    u.email = "charles.averill@utdallas.edu"
+    u.age = 18
+    u.major = "CS"
+
+    posts = []
+
+    for i in range(50):
+        p = Post()
+        p.title = f"Looking for a date {i}"
+        p.content = """
+        Hi all!\n
+        My name is Charles and I'm looking for a date on XX/YY. I like blah and blah\n
+        and blah as well.\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        and this\n
+        \n
+        I really look forward to meeting y'all this year!\n
+        \n
+        Yours truly, \n
+        Charles Averill
+        """
+        p.user = u
+
+        posts.append(p)
+
+    state = WindowState.FORUM_VIEW
+    tui = TUI(stdscr, state, sess, posts)
 
     tui.run()
 

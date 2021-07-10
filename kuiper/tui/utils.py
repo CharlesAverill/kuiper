@@ -51,7 +51,7 @@ def validate_login(vals, sess):
             return "All fields are mandatory"
 
     query = sess.query(User).filter(User.username == vals[LoginState.USERNAME],
-                                    User.password == vals[LoginState.PASSWORD])
+                                    User.password == vals[LoginState.PASSWORD]).first()
 
     if not query:
         return "No account with that information was found"

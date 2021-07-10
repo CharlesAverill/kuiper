@@ -149,15 +149,39 @@ def vforum(TUI):
                       curses.color_pair(4))
     add_center_string(TUI, "Comments", int(TUI.height / 2) + 1, min_x=border_20_percent, color_pair_index=4)
 
+    # List of posts
     for idx, item in enumerate(TUI.items[TUI.top:TUI.top + TUI.max_lines]):
         try:
             # Highlight the current cursor line
-            if TUI.current <= idx <= TUI.current + 2:
-                TUI.window.addstr(idx + 4, 2, item[:border_20_percent - 2], curses.color_pair(2))
-            else:
-                TUI.window.addstr(idx + 4, 1, item[:border_20_percent - 1], curses.color_pair(1))
+            border_offset = 2 if TUI.current <= idx <= TUI.current + 2 else 1
+            TUI.window.addstr(idx + 4, border_offset, item[:border_20_percent - border_offset], curses.color_pair(border_offset))
+            # Draw separators
+            if idx % 3 == 0:
+                dashes = horz * (border_20_percent - len(item) - border_offset) + riti
+                TUI.window.addstr(idx + 4, len(item) + border_offset, dashes, curses.color_pair(4))
         except curses.error:
             # This occurs when there aren't enough terminal lines to render the requested items, happens
             # when users resize window too quickly
             continue
+
+    # Post contents
+    current_post = TUI.posts[TUI.post_index]
+    add_center_string(TUI, f"\"{current_post.title}\"", 1, min_x=border_20_percent, color_pair_index=1)
+    TUI.window.addstr(2, border_20_percent + 1, "Username:  ", curses.color_pair(4))
+    TUI.window.addstr(2, border_20_percent + 12, current_post.user.username, curses.color_pair(1))
+    TUI.window.addstr(3, border_20_percent + 1, "Major:     ", curses.color_pair(4))
+    TUI.window.addstr(3, border_20_percent + 12, current_post.user.major, curses.color_pair(1))
+    TUI.window.addstr(4, border_20_percent + 1, "Time Left: ", curses.color_pair(4))
+    TUI.window.addstr(4, border_20_percent + 12, current_post.time_left, curses.color_pair(1))
+    for idx, line in enumerate(current_post.content.strip().split("\n")[::2]):
+        TUI.window.addstr(6 + idx, border_20_percent + 12, line.strip(), curses.color_pair(1))
+
+    # Command bar (spread across comments section bottom)
+    commands = ["ENTER = Select", "n = New Post", "a = Account Menu",
+                "p = View My Post", "l = Logout", "h = Help", "ESC = exit"]
+    commands_len = len("".join(commands))
+    n_whitespace_chars = int((TUI.width - border_20_percent - commands_len) / len(commands)) - 1
+    commands_string = (" " + " " * n_whitespace_chars).join(commands)[:TUI.width - border_20_percent - 2]
+    add_center_string(TUI, commands_string, TUI.height - 2, min_x=border_20_percent, color_pair_index=4)
+
     TUI.window.refresh()

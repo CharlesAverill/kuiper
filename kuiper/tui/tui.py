@@ -39,7 +39,7 @@ class TUI:
         curses.start_color()
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Normal text
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_GREEN)  # Highlighted text
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)    # Flash text
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_WHITE)  # Flash text
         curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Border stuff
 
         self.current = curses.color_pair(2)
@@ -103,6 +103,8 @@ class TUI:
         self.shorthand_input_password_mode = False
         self.flashing = None
 
+        self.post_index = 0
+
     def run(self):
         """Continue running the TUI until get interrupted"""
         try:
@@ -125,8 +127,9 @@ class TUI:
 
             unctrl = curses.ascii.unctrl(ch)
 
-            if self.flashing is not None and (ch == curses.KEY_ENTER or unctrl == "^J"):
-                self.flashing = None
+            if self.flashing is not None:
+                if ch == curses.KEY_ENTER or unctrl == "^J":
+                    self.flashing = None
                 continue
 
             if self.reading_shorthand_input and self.input_verification(ch):
@@ -159,21 +162,25 @@ class TUI:
         # current cursor position is 0, but top position is greater than 0
         if (direction == self.UP) and (self.top > 0 and self.current == 0):
             self.top += direction
+            self.post_index -= 1
             return
         # Down direction scroll overflow
         # next cursor position touch the max lines, but absolute position of max lines could not touch the bottom
         if (direction == self.DOWN) and (next_line == self.max_lines) and (self.top + self.max_lines < self.bottom):
             self.top += direction
+            self.post_index += 1
             return
         # Scroll up
         # current cursor position or top position is greater than 0
         if (direction == self.UP) and (self.top > 0 or self.current > 0):
             self.current = next_line
+            self.post_index -= 1
             return
         # Scroll down
         # next cursor position is above max lines, and absolute position of next cursor could not touch the bottom
         if (direction == self.DOWN) and (next_line < self.max_lines) and (self.top + next_line < self.bottom):
             self.current = next_line
+            self.post_index += 1
             return
 
     def paging(self, direction):
@@ -198,8 +205,8 @@ class TUI:
             return
 
     def shorthand_input(self):
-        self.window.addstr(self.max_lines,
-                           1,
+        self.window.addstr(self.height - 2,
+                           2,
                            "$ " + (self.current_buf if not self.shorthand_input_password_mode else "*" * len(
                                self.current_buf)),
                            curses.color_pair(2))
@@ -224,47 +231,62 @@ class TUI:
         self.state = new_state
 
 
+def generate_dummy_users_posts():
+    users = []
+    posts = []
+
+    usernames = ["Charles", "Alan", "Tim", "Grace", "Ada", "Donald", "Dennis", "John", "Linus"]
+    majors = ["Mech", "CS", "DS", "EE", "Business"]
+    ages = [18, 19, 20, 21, 22]
+
+    import random
+    import datetime
+
+    for i in range(50):
+        u = User()
+        u.username = random.choice(usernames)
+        u.email = f"{u.username}@utdallas.edu"
+        u.age = random.choice(ages)
+        u.major = random.choice(majors)
+
+        p = Post()
+        p.title = f"Looking for a date {i}"
+        p.content = f"""
+            Hi all!\n
+            My name is {u.username} and I'm looking for a date on XX/YY. I like blah and blah\n
+            and blah as well.\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            and this\n
+            \n
+            I really look forward to meeting y'all this year!\n
+            \n
+            Yours truly, \n
+            {u.username}
+            """
+        p.user = u
+        p.created_at = datetime.datetime(2021, 7, 8, random.randint(0, 23))
+
+        users.append(u)
+        posts.append(p)
+
+    return users, posts
+
+
 def main(stdscr):
     global sess
 
-    u = User()
-    u.username = "Charles"
-    u.email = "charles.averill@utdallas.edu"
-    u.age = 18
-    u.major = "CS"
+    users, posts = generate_dummy_users_posts()
 
-    posts = []
-
-    for i in range(50):
-        p = Post()
-        p.title = f"Looking for a date {i}"
-        p.content = """
-        Hi all!\n
-        My name is Charles and I'm looking for a date on XX/YY. I like blah and blah\n
-        and blah as well.\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        and this\n
-        \n
-        I really look forward to meeting y'all this year!\n
-        \n
-        Yours truly, \n
-        Charles Averill
-        """
-        p.user = u
-
-        posts.append(p)
-
-    state = WindowState.FORUM_VIEW
+    state = WindowState.LOGIN
     tui = TUI(stdscr, state, sess, posts)
 
     tui.run()

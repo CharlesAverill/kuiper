@@ -34,7 +34,7 @@ def ilogin(TUI, ch):
         if TUI.sub_state == LoginState.LOGIN:
             query_result = validate_login(TUI.buffers, TUI.sess)
             if type(query_result) != str:
-                exit(query_result)
+                TUI.update_state(WindowState.FORUM_VIEW)
             else:
                 TUI.flashing = query_result
         elif TUI.sub_state == LoginState.REGISTER:
@@ -100,16 +100,16 @@ def iforum(TUI, ch):
     if not TUI.reading_shorthand_input:
         if ch == curses.KEY_ENTER or unctrl == "^J":
             exit("Select")
-        elif str(ch) == "n":
+        elif unctrl == "n":
             exit("New post")
-        elif str(ch) == "c":
+        elif unctrl == "c":
             exit("Comment")
-        elif str(ch) == "h":
+        elif unctrl == "h":
             exit("Help menu")
-        elif str(ch) == "a":
+        elif unctrl == "a":
             exit("Account menu")
-        elif str(ch) == "p":
+        elif unctrl == "p":
             exit("View post")
-        elif str(ch) == "l":
+        elif unctrl == "l":
             TUI.user = None
             TUI.update_state(WindowState.LOGIN)

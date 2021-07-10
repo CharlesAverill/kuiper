@@ -39,6 +39,8 @@ def ilogin(TUI, ch):
                 TUI.flashing = query_result
         elif TUI.sub_state == LoginState.REGISTER:
             TUI.update_state(WindowState.REGISTER)
+        elif TUI.sub_state == LoginState.EXIT:
+            exit("Thank you for using kuiper!")
         else:
             shift_sub_states(TUI, curses.KEY_DOWN, up=False)
 

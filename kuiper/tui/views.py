@@ -4,7 +4,7 @@ from .states import LoginState, RegisterState
 from .utils import add_center_string
 
 import curses
-import itertools
+import math
 
 
 def vlogin(TUI):
@@ -24,13 +24,13 @@ def vlogin(TUI):
     # Username label and field
     color_pair = 2 if TUI.sub_state == LoginState.USERNAME else 1
     if LoginState.USERNAME in TUI.buffers.keys():
-        TUI.window.addstr(5, 13, TUI.buffers[LoginState.USERNAME], curses.color_pair(color_pair))
+        TUI.window.addstr(5, 13, TUI.buffers[LoginState.USERNAME][:TUI.width - 14], curses.color_pair(color_pair))
     TUI.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
 
     # Password label and field
     color_pair = 2 if TUI.sub_state == LoginState.PASSWORD else 1
     if LoginState.PASSWORD in TUI.buffers.keys():
-        TUI.window.addstr(6, 13, "*" * len(TUI.buffers[LoginState.PASSWORD]), curses.color_pair(color_pair))
+        TUI.window.addstr(6, 13, ("*" * len(TUI.buffers[LoginState.PASSWORD]))[:TUI.width - 14], curses.color_pair(color_pair))
     TUI.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
 
     # Login button
@@ -38,6 +38,9 @@ def vlogin(TUI):
 
     # Register button
     TUI.window.addstr(9, 3, "Register", curses.color_pair(2 if TUI.sub_state == LoginState.REGISTER else 1))
+
+    # Exit button
+    TUI.window.addstr(11, 3, "Exit", curses.color_pair(2 if TUI.sub_state == LoginState.EXIT else 1))
 
     TUI.reading_shorthand_input = TUI.sub_state in [LoginState.USERNAME, LoginState.PASSWORD]
     TUI.shorthand_input_password_mode = TUI.sub_state == LoginState.PASSWORD
@@ -119,7 +122,7 @@ def vforum(TUI):
     lfti = "├"
 
     # 20% Line
-    border_20_percent = int(TUI.width * .3)
+    border_20_percent = int(math.floor(TUI.width * .3))
 
     for idx in range(TUI.height - 2):
         if idx == 0:
@@ -158,6 +161,8 @@ def vforum(TUI):
             # Draw separators
             if idx % 3 == 0:
                 dashes = horz * (border_20_percent - len(item) - border_offset) + riti
+                if len(dashes) == 1:
+                    dashes = ""
                 TUI.window.addstr(idx + 4, len(item) + border_offset, dashes, curses.color_pair(4))
         except curses.error:
             # This occurs when there aren't enough terminal lines to render the requested items, happens
@@ -167,14 +172,16 @@ def vforum(TUI):
     # Post contents
     current_post = TUI.posts[TUI.post_index]
     add_center_string(TUI, f"\"{current_post.title}\"", 1, min_x=border_20_percent, color_pair_index=1)
-    TUI.window.addstr(2, border_20_percent + 1, "Username:  ", curses.color_pair(4))
-    TUI.window.addstr(2, border_20_percent + 12, current_post.user.username, curses.color_pair(1))
-    TUI.window.addstr(3, border_20_percent + 1, "Major:     ", curses.color_pair(4))
-    TUI.window.addstr(3, border_20_percent + 12, current_post.user.major, curses.color_pair(1))
-    TUI.window.addstr(4, border_20_percent + 1, "Time Left: ", curses.color_pair(4))
-    TUI.window.addstr(4, border_20_percent + 12, current_post.time_left, curses.color_pair(1))
+    label_start = border_20_percent + 1
+    field_start = border_20_percent + 12
+    TUI.window.addstr(2, label_start, "Username:  ", curses.color_pair(4))
+    TUI.window.addstr(2, field_start, current_post.user.username[:TUI.width - field_start - 1], curses.color_pair(1))
+    TUI.window.addstr(3, label_start, "Major:     ", curses.color_pair(4))
+    TUI.window.addstr(3, field_start, current_post.user.major[:TUI.width - field_start - 1], curses.color_pair(1))
+    TUI.window.addstr(4, label_start, "Time Left: ", curses.color_pair(4))
+    TUI.window.addstr(4, field_start, current_post.time_left[:TUI.width - field_start - 1], curses.color_pair(1))
     for idx, line in enumerate(current_post.content.strip().split("\n")[::2]):
-        TUI.window.addstr(6 + idx, border_20_percent + 12, line.strip(), curses.color_pair(1))
+        TUI.window.addstr(6 + idx, field_start, line.strip()[:TUI.width - border_20_percent - 13], curses.color_pair(1))
 
     # Command bar (spread across comments section bottom)
     commands = ["ENTER = Select", "n = New Post", "a = Account Menu",

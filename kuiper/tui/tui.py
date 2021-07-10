@@ -63,7 +63,8 @@ class TUI:
                 LoginState.USERNAME: "username",
                 LoginState.PASSWORD: "password",
                 LoginState.LOGIN: None,
-                LoginState.REGISTER: None
+                LoginState.REGISTER: None,
+                LoginState.EXIT: None
             },
             WindowState.REGISTER: {
                 RegisterState.USERNAME: "username",
@@ -81,7 +82,8 @@ class TUI:
                 LoginState.USERNAME,
                 LoginState.PASSWORD,
                 LoginState.LOGIN,
-                LoginState.REGISTER
+                LoginState.REGISTER,
+                LoginState.EXIT
             ],
             WindowState.REGISTER: [
                 RegisterState.USERNAME,

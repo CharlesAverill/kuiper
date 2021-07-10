@@ -21,6 +21,8 @@ class LoginState(Enum):
     LOGIN = 3
     REGISTER = 4
 
+    EXIT = 5
+
 
 class RegisterState(Enum):
     EMAIL = 0

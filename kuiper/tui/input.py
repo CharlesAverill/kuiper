@@ -2,9 +2,10 @@ import curses
 import curses.ascii
 
 from ..db import register
+from ..models import User
 
 from .states import LoginState, WindowState, RegisterState
-from .utils import validate_user_registration, validate_login, flash
+from .utils import validate_user_registration, validate_login
 
 
 def shift_sub_states(TUI, ch, up=True, down=True):
@@ -30,13 +31,17 @@ def ilogin(TUI, ch):
     shift_sub_states(TUI, ch)
 
     # Carriage Return
-    if ch == curses.KEY_ENTER or unctrl == "^J":
+    if ch == curses.KEY_ENTER or unctrl == "^I" or unctrl == "^J":
         if TUI.sub_state == LoginState.LOGIN:
-            query_result = validate_login(TUI.buffers, TUI.sess)
-            if type(query_result) != str:
+            if validate_login(TUI.buffers, TUI.sess):
+                TUI.flashing = "All fields are mandatory"
+            elif TUI.client.login(TUI.buffers[LoginState.USERNAME], TUI.buffers[LoginState.PASSWORD]):
+                u = User()
+                u.from_json(TUI.client.get_user_by_username(TUI.buffers[LoginState.USERNAME]))
+                TUI.user = u
                 TUI.update_state(WindowState.FORUM_VIEW)
             else:
-                TUI.flashing = query_result
+                TUI.flashing = "No account found with that information"
         elif TUI.sub_state == LoginState.REGISTER:
             TUI.update_state(WindowState.REGISTER)
         elif TUI.sub_state == LoginState.EXIT:
@@ -60,23 +65,21 @@ def iregister(TUI, ch):
         TUI.input_verification = curses.ascii.isalnum
 
     # Carriage Return
-    if ch == curses.KEY_ENTER or unctrl == "^J":
+    if ch == curses.KEY_ENTER or unctrl == "^I" or unctrl == "^J":
         if TUI.sub_state == RegisterState.REGISTER:
             # Perform Registration
             if TUI.reading_shorthand_input:
                 TUI.shorthand_input()
 
             vals = TUI.buffers
-            validation = validate_user_registration(vals, TUI.sess)
+            validation = validate_user_registration(vals, TUI.client)
             if validation == "valid":
                 # Submit registration to database
-                register(vals[RegisterState.EMAIL],
-                         vals[RegisterState.USERNAME],
-                         vals[RegisterState.PASSWORD],
-                         vals[RegisterState.AGE],
-                         vals[RegisterState.MAJOR],
-                         TUI.sess)
-                TUI.sess.commit()
+                TUI.client.register(vals[RegisterState.EMAIL],
+                                    vals[RegisterState.USERNAME],
+                                    vals[RegisterState.PASSWORD],
+                                    vals[RegisterState.AGE],
+                                    vals[RegisterState.MAJOR])
                 # Go back to login page
                 TUI.update_state(WindowState.LOGIN)
             else:

@@ -1,4 +1,4 @@
-from .. import __version__
+import pkg_resources
 
 from .states import LoginState, RegisterState
 from .utils import add_center_string
@@ -15,32 +15,36 @@ def vlogin(TUI):
     if TUI.sub_state is None:
         TUI.sub_state = LoginState.USERNAME
 
-    # Header
-    add_center_string(TUI, f"Kuiper {__version__}", 1)
-    add_center_string(TUI, "A terminal-based dating application for UTD Students", 2)
-    add_center_string(TUI, "Charles Averill - charles.averill@utdallas.edu - "
-                           "https://github.com/CharlesAverill/kuiper", 3)
+    try:
+        # Header
+        add_center_string(TUI, f"Kuiper {pkg_resources.get_distribution('kuiper').version}", 1)
+        add_center_string(TUI, "A terminal-based dating application for UTD Students", 2)
+        add_center_string(TUI, "Charles Averill - charles.averill@utdallas.edu - "
+                               "https://github.com/CharlesAverill/kuiper", 3)
 
-    # Username label and field
-    color_pair = 2 if TUI.sub_state == LoginState.USERNAME else 1
-    if LoginState.USERNAME in TUI.buffers.keys():
-        TUI.window.addstr(5, 13, TUI.buffers[LoginState.USERNAME][:TUI.width - 14], curses.color_pair(color_pair))
-    TUI.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
+        # Username label and field
+        color_pair = 2 if TUI.sub_state == LoginState.USERNAME else 1
+        if LoginState.USERNAME in TUI.buffers.keys():
+            TUI.window.addstr(5, 13, TUI.buffers[LoginState.USERNAME][:TUI.width - 14], curses.color_pair(color_pair))
+        TUI.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
 
-    # Password label and field
-    color_pair = 2 if TUI.sub_state == LoginState.PASSWORD else 1
-    if LoginState.PASSWORD in TUI.buffers.keys():
-        TUI.window.addstr(6, 13, ("*" * len(TUI.buffers[LoginState.PASSWORD]))[:TUI.width - 14], curses.color_pair(color_pair))
-    TUI.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
+        # Password label and field
+        color_pair = 2 if TUI.sub_state == LoginState.PASSWORD else 1
+        if LoginState.PASSWORD in TUI.buffers.keys():
+            TUI.window.addstr(6, 13, ("*" * len(TUI.buffers[LoginState.PASSWORD]))[:TUI.width - 14], curses.color_pair(color_pair))
+        TUI.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
 
-    # Login button
-    TUI.window.addstr(8, 3, "Login", curses.color_pair(2 if TUI.sub_state == LoginState.LOGIN else 1))
+        # Login button
+        TUI.window.addstr(8, 3, "Login", curses.color_pair(2 if TUI.sub_state == LoginState.LOGIN else 1))
 
-    # Register button
-    TUI.window.addstr(9, 3, "Register", curses.color_pair(2 if TUI.sub_state == LoginState.REGISTER else 1))
+        # Register button
+        TUI.window.addstr(9, 3, "Register", curses.color_pair(2 if TUI.sub_state == LoginState.REGISTER else 1))
 
-    # Exit button
-    TUI.window.addstr(11, 3, "Exit", curses.color_pair(2 if TUI.sub_state == LoginState.EXIT else 1))
+        # Exit button
+        TUI.window.addstr(11, 3, "Exit", curses.color_pair(2 if TUI.sub_state == LoginState.EXIT else 1))
+    except curses.error as e:
+        # Happens when window is too short
+        do_nothing = True
 
     TUI.reading_shorthand_input = TUI.sub_state in [LoginState.USERNAME, LoginState.PASSWORD]
     TUI.shorthand_input_password_mode = TUI.sub_state == LoginState.PASSWORD
@@ -59,45 +63,50 @@ def vregister(TUI):
     if TUI.sub_state is None:
         TUI.sub_state = RegisterState.USERNAME
 
-    # Header
-    add_center_string(TUI, "Register", 1)
+    try:
+        # Header
+        add_center_string(TUI, "Register", 1)
 
-    # Username label and field
-    color_pair = 2 if TUI.sub_state == RegisterState.USERNAME else 1
-    if RegisterState.USERNAME in TUI.buffers.keys():
-        TUI.window.addstr(4, 13, TUI.buffers[RegisterState.USERNAME], curses.color_pair(color_pair))
-    TUI.window.addstr(4, 3, "Username:", curses.color_pair(color_pair))
+        # Username label and field
+        color_pair = 2 if TUI.sub_state == RegisterState.USERNAME else 1
+        if RegisterState.USERNAME in TUI.buffers.keys():
+            TUI.window.addstr(4, 13, TUI.buffers[RegisterState.USERNAME], curses.color_pair(color_pair))
+        TUI.window.addstr(4, 3, "Username:", curses.color_pair(color_pair))
 
-    # Email label and field
-    color_pair = 2 if TUI.sub_state == RegisterState.EMAIL else 1
-    if RegisterState.EMAIL in TUI.buffers.keys():
-        TUI.window.addstr(5, 15, TUI.buffers[RegisterState.EMAIL], curses.color_pair(color_pair))
-    TUI.window.addstr(5, 3, "UTD E-Mail:", curses.color_pair(color_pair))
+        # Email label and field
+        color_pair = 2 if TUI.sub_state == RegisterState.EMAIL else 1
+        if RegisterState.EMAIL in TUI.buffers.keys():
+            TUI.window.addstr(5, 15, TUI.buffers[RegisterState.EMAIL], curses.color_pair(color_pair))
+        TUI.window.addstr(5, 3, "UTD E-Mail:", curses.color_pair(color_pair))
 
-    # Password label and field
-    color_pair = 2 if TUI.sub_state == RegisterState.PASSWORD else 1
-    if RegisterState.PASSWORD in TUI.buffers.keys():
-        TUI.window.addstr(6, 13, "*" * len(TUI.buffers[RegisterState.PASSWORD]), curses.color_pair(color_pair))
-    TUI.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
+        # Password label and field
+        color_pair = 2 if TUI.sub_state == RegisterState.PASSWORD else 1
+        if RegisterState.PASSWORD in TUI.buffers.keys():
+            TUI.window.addstr(6, 13, "*" * len(TUI.buffers[RegisterState.PASSWORD]), curses.color_pair(color_pair))
+        TUI.window.addstr(6, 3, "Password:", curses.color_pair(color_pair))
 
-    # Age label and field
-    color_pair = 2 if TUI.sub_state == RegisterState.AGE else 1
-    if RegisterState.AGE in TUI.buffers.keys():
-        TUI.window.addstr(8, 8, TUI.buffers[RegisterState.AGE], curses.color_pair(color_pair))
-    TUI.window.addstr(8, 3, "Age:", curses.color_pair(color_pair))
+        # Age label and field
+        color_pair = 2 if TUI.sub_state == RegisterState.AGE else 1
+        if RegisterState.AGE in TUI.buffers.keys():
+            TUI.window.addstr(8, 8, TUI.buffers[RegisterState.AGE], curses.color_pair(color_pair))
+        TUI.window.addstr(8, 3, "Age:", curses.color_pair(color_pair))
 
-    # Major label and field
-    color_pair = 2 if TUI.sub_state == RegisterState.MAJOR else 1
-    if RegisterState.MAJOR in TUI.buffers.keys():
-        TUI.window.addstr(9, 10, TUI.buffers[RegisterState.MAJOR], curses.color_pair(color_pair))
-    TUI.window.addstr(9, 3, "Major:", curses.color_pair(color_pair))
+        # Major label and field
+        color_pair = 2 if TUI.sub_state == RegisterState.MAJOR else 1
+        if RegisterState.MAJOR in TUI.buffers.keys():
+            TUI.window.addstr(9, 10, TUI.buffers[RegisterState.MAJOR], curses.color_pair(color_pair))
+        TUI.window.addstr(9, 3, "Major:", curses.color_pair(color_pair))
 
-    # Register button
-    TUI.window.addstr(11, 3, "Register", curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
+        # Register button
+        TUI.window.addstr(11, 3, "Register", curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
 
-    # Back to Login screen
-    TUI.window.addstr(12, 3, "Back to Login",
-                      curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
+        # Back to Login screen
+        TUI.window.addstr(12, 3, "Back to Login",
+                          curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
+
+    except curses.error as e:
+        # Happens when window is too short
+        do_nothing = True
 
     TUI.reading_shorthand_input = TUI.sub_state not in [RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN]
     TUI.shorthand_input_password_mode = TUI.sub_state == RegisterState.PASSWORD

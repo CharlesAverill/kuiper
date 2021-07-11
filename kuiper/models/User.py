@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.functions import now
 from sqlalchemy.schema import Column
@@ -19,6 +21,26 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, default=now())
 
     __tablename__ = "user"
+
+    def from_json(self, data):
+        self.id = data["USER_ID"]
+        self.email = data["EMAIL"]
+        self.username = data["USERNAME"]
+        self.age = int(data["AGE"])
+        self.major = data["MAJOR"]
+
+    def json(self):
+        data = {
+            "USER_ID": self.id,
+            "EMAIL": self.email,
+            "USERNAME": self.username,
+            "AGE": self.age,
+            "MAJOR": self.major,
+        }
+        if len(self.post) > 0:
+            data["POST_ID"] = self.post[0].id
+
+        return json.dumps(data)
 
     def __str__(self):
         out = f"ID: {self.id}\n" \

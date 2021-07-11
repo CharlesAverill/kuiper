@@ -18,7 +18,7 @@ def validate_number(num):
         return False
 
 
-def validate_user_registration(vals, sess):
+def validate_user_registration(vals, client):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN):
             return "All fields are mandatory"
@@ -34,12 +34,10 @@ def validate_user_registration(vals, sess):
     if len(vals[RegisterState.MAJOR]) < 2:
         return "Major must be at least 2 characters"
 
-    email_query = sess.query(User).filter(User.email == vals[RegisterState.EMAIL])
-    if email_query.first():
+    if client.get_user_by_email(vals[RegisterState.EMAIL]):
         return "Email already taken"
 
-    uname_query = sess.query(User).filter(User.username == vals[RegisterState.USERNAME])
-    if uname_query.first():
+    if client.get_user_by_email(vals[RegisterState.USERNAME]):
         return "Username already taken"
 
     return "valid"
@@ -48,15 +46,7 @@ def validate_user_registration(vals, sess):
 def validate_login(vals, sess):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (LoginState.REGISTER, LoginState.LOGIN):
-            return "All fields are mandatory"
-
-    query = sess.query(User).filter(User.username == vals[LoginState.USERNAME],
-                                    User.password == vals[LoginState.PASSWORD]).first()
-
-    if not query:
-        return "No account with that information was found"
-
-    return query
+            return True
 
 
 def add_center_string(TUI, string, y, max_x=None, min_x=0, color_pair_index=1):

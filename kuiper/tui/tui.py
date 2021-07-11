@@ -9,19 +9,20 @@ from curses import ascii
 from .views import *
 from .input import *
 from .states import WindowState, LoginState
-from ..models import Post, User
+from .utils import flash
 
-sess = None
+from ..models import Post, User
 
 
 class TUI:
     UP = -3
     DOWN = 3
 
-    def __init__(self, stdscr, state, session, posts, user=None):
+    def __init__(self, stdscr, state, session, client, posts, user=None):
         self.window = stdscr
         self.state = state
         self.sess = session
+        self.client = client
         self.items = []
         self.posts = posts
         for post in self.posts:
@@ -283,19 +284,18 @@ def generate_dummy_users_posts():
     return users, posts
 
 
-def main(stdscr):
-    global sess
-
+def main(stdscr, *args):
+    """
+    :param stdscr: Provided by curses.wrapper
+    :param args: [Session, Client]
+    """
     users, posts = generate_dummy_users_posts()
 
     state = WindowState.LOGIN
-    tui = TUI(stdscr, state, sess, posts)
+    tui = TUI(stdscr, state, args[0], args[1], posts)
 
     tui.run()
 
 
-def start_tui(session):
-    global sess
-    sess = session
-
-    wrapper(main)
+def start_tui(session, client):
+    wrapper(main, session, client)

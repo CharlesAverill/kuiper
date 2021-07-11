@@ -37,7 +37,7 @@ def validate_user_registration(vals, client):
     if client.get_user_by_email(vals[RegisterState.EMAIL]):
         return "Email already taken"
 
-    if client.get_user_by_email(vals[RegisterState.USERNAME]):
+    if client.get_user_by_username(vals[RegisterState.USERNAME]):
         return "Username already taken"
 
     return "valid"

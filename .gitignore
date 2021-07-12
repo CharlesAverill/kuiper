@@ -1,5 +1,7 @@
 *.lock
 *.db
-.log
+*.log
+dist/*
+kuiper/__pycache__
 kuiper/tui/__pycache__
 kuiper/models/__pycache__

@@ -70,6 +70,7 @@ def main():
             cfg = load(new_stream, FullLoader)
             with open(cfg_path, "w") as old_stream:
                 dump(cfg, old_stream, SafeDumper)
+        exit("Configurations loaded")
 
     sess = init_db(cfg)
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kuiper"
-version = "0.5.0"
+version = "0.5.1"
 description = "A terminal-based dating application for UTD students"
 readme = "README.md"
 homepage = "https://github.com/CharlesAverill/kuiper"

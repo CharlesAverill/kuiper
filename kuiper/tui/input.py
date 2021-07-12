@@ -72,7 +72,7 @@ def iregister(TUI, ch):
                 TUI.shorthand_input()
 
             vals = TUI.buffers
-            validation = validate_user_registration(vals, TUI.client)
+            validation = validate_user_registration(vals, TUI.client, TUI.cfg)
             if validation == "valid":
                 # Submit registration to database
                 TUI.client.register(vals[RegisterState.EMAIL],

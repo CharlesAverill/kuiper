@@ -2,12 +2,11 @@ import curses
 import re
 
 from .states import RegisterState, LoginState
-from ..models import User
 
 
-def validate_email(email):
+def validate_email(cfg, email):
     return re.match(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-                    email) and email.endswith("@utdallas.edu")
+                    email) and email.endswith(cfg["required_email_suffix"])
 
 
 def validate_number(num):
@@ -18,7 +17,7 @@ def validate_number(num):
         return False
 
 
-def validate_user_registration(vals, client):
+def validate_user_registration(vals, client, cfg):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN):
             return "All fields are mandatory"

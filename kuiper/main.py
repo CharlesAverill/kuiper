@@ -68,7 +68,7 @@ def main():
         start_server(cfg, sess, args.quiet)
     else:
         client = Client(cfg["access_host"], cfg["port"])
-        start_tui(sess, client)
+        start_tui(sess, client, cfg)
 
 
 if __name__ == "__main__":

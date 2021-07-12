@@ -18,11 +18,12 @@ class TUI:
     UP = -3
     DOWN = 3
 
-    def __init__(self, stdscr, state, session, client, posts, user=None):
+    def __init__(self, stdscr, state, session, client, posts, cfg, user=None):
         self.window = stdscr
         self.state = state
         self.sess = session
         self.client = client
+        self.cfg = cfg
         self.items = []
         self.posts = posts
         for post in self.posts:
@@ -287,15 +288,15 @@ def generate_dummy_users_posts():
 def main(stdscr, *args):
     """
     :param stdscr: Provided by curses.wrapper
-    :param args: [Session, Client]
+    :param args: [Session, Client, Configs]
     """
     users, posts = generate_dummy_users_posts()
 
     state = WindowState.LOGIN
-    tui = TUI(stdscr, state, args[0], args[1], posts)
+    tui = TUI(stdscr, state, args[0], args[1], posts, args[2])
 
     tui.run()
 
 
-def start_tui(session, client):
-    wrapper(main, session, client)
+def start_tui(session, client, cfg):
+    wrapper(main, session, client, cfg)

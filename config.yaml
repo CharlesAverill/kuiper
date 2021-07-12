@@ -1,3 +1,5 @@
+required_email_suffix: "@utdallas.edu"
+
 db_path: "kuiper.db"
 
 access_host: "35.172.42.184"

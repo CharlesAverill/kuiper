@@ -1,5 +1,5 @@
 import argparse
-import sys
+import os
 import pathlib
 
 from yaml import load, dump, FullLoader, SafeDumper
@@ -53,8 +53,7 @@ def main():
 
     args = parser.parse_args()
 
-    cfg_path = pathlib.Path(sys.argv[0]).parents[0] / "config.yaml"
-    print(cfg_path)
+    cfg_path = pathlib.Path(os.path.dirname(__file__)).parents[0] / "config.yaml"
 
     with open(cfg_path, "r") as cfg_stream:
         cfg = load(cfg_stream, FullLoader)

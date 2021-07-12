@@ -2,7 +2,7 @@ import argparse
 import os
 import pathlib
 
-from yaml import load, FullLoader
+from yaml import load, dump, FullLoader, SafeDumper
 
 from .db import init_db
 from .tui import start_tui
@@ -39,6 +39,9 @@ def main():
                         "--init_db",
                         action="store_true",
                         help="Initializes database(s) required for operation")
+    parser.add_argument("-l",
+                        "--load_configs",
+                        help="Path to a .yaml file for server configurations")
     parser.add_argument("-q",
                         "--quiet",
                         action="store_true",
@@ -61,6 +64,12 @@ def main():
     if args.init_db:
         init_db(cfg, delete_db=True)
         exit("Database initialized")
+
+    if args.load_configs:
+        with open(args.load_configs, "r") as new_stream:
+            cfg = load(new_stream, FullLoader)
+            with open(cfg_path, "w") as old_stream:
+                dump(cfg, old_stream, SafeDumper)
 
     sess = init_db(cfg)
 

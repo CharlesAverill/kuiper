@@ -1,25 +1,35 @@
 # Kuiper
 
-A terminal-based dating application for UTD students, built with the `curses` api
+A terminal-based dating application for UTD students, built with the `curses` API.
 
 ## Usage
 ```bash
-$ pip install kuiper              # Install
-$ kuiper                          # Start the TUI
-$ kuiper -c USERNAME PASSWORD     # Login with credentials
-$ kuiper -i                       # Initialize the database
-$ kuiper -h                       # View the help menu
-$ kuiper -l config_updates.yaml   # Update server configs
-$ kuiper -q                       # Suppress server output
-$ kuiper -s                       # Start kuiper server
+$ pip install kuiper           # Install
+$ kuiper                       # Start the TUI
+$ kuiper -c USERNAME PASSWORD  # Login with credentials
+$ kuiper -i                    # Initialize the database
+$ kuiper -h                    # View the help menu
+$ kuiper -l new_configs.yaml   # Update server configs
+$ kuiper -q                    # Suppress server output
+$ kuiper -s                    # Start kuiper server
 ```
 
-## Main Server
+## Configs
 
-The main Kuiper server is publicly hosted at `35.172.42.184:8000`
+The follow are the configuration options supported by Kuiper. 
 
-If you overwrite your `access_host` or `port` configs and wish to connect to the main server again, 
-use the `-l` option to update your configs
+To modify Kuiper's configs, create a `config.yaml` file with the keys and values you'd like to overwrite, 
+and call `kuiper -l config.yaml`
+
+| Config | Default Value | Description |
+| --- | --- | --- |
+| bind_host | "127.0.0.1" | The address on which the server will be hosted via `kuiper -s` |
+| port | 8000 | The port on which the server will be hosted via `kuiper -s`
+| access_host | "35.172.42.184" | The address to the server the client will ping. The defualt value is the static IP address of Kuiper's main server |
+| db_path | "kuiper.db" | The path to the server's user and post database |
+| required_email_suffix | "@utdallas.edu" | The email suffix required during registration. For no requirement, set to `""` |
+| text_editor | "vim" | The text editor called via the `subprocess` module to write posts and comments |
+
 
 ## Inspiration
 [UTD Bruh Moments IG Post](https://www.instagram.com/p/CRCJhEmpbI0/)

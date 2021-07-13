@@ -1,5 +1,7 @@
 import curses
 import curses.ascii
+import tempfile
+import subprocess
 
 from ..models import User
 

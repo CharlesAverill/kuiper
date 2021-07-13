@@ -67,7 +67,7 @@ def main():
 
     if args.load_configs:
         with open(args.load_configs, "r") as new_stream:
-            cfg = load(new_stream, FullLoader)
+            cfg.update(load(new_stream, FullLoader))
             with open(cfg_path, "w") as old_stream:
                 dump(cfg, old_stream, SafeDumper)
         exit("Configurations loaded")

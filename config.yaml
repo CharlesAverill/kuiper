@@ -1,4 +1,5 @@
-access_host: 35.172.42.184
-db_path: kuiper.db
+bind_host: "127.0.0.1"
+access_host: "35.172.42.184"
+db_path: "kuiper.db"
 port: 8000
-required_email_suffix: '@utdallas.edu'
+required_email_suffix: "@utdallas.edu"

@@ -58,6 +58,7 @@ class TUI:
             WindowState.LOGIN: (vlogin, ilogin),
             WindowState.REGISTER: (vregister, iregister),
             WindowState.FORUM_VIEW: (vforum, iforum),
+            WindowState.NEW_POST_VIEW: (vnew_post, inew_post)
         }
 
         self.states_dicts = {
@@ -76,6 +77,10 @@ class TUI:
                 RegisterState.MAJOR: "major",
                 RegisterState.REGISTER: None,
                 RegisterState.BACK_TO_LOGIN: None
+            },
+            WindowState.NEW_POST_VIEW: {
+                NewPostState.SUBMIT_POST: None,
+                NewPostState.BACK_TO_VIM: None
             }
         }
 
@@ -95,6 +100,10 @@ class TUI:
                 RegisterState.MAJOR,
                 RegisterState.REGISTER,
                 RegisterState.BACK_TO_LOGIN
+            ],
+            WindowState.NEW_POST_VIEW: [
+                NewPostState.SUBMIT_POST,
+                NewPostState.BACK_TO_VIM
             ]
         }
 
@@ -107,7 +116,12 @@ class TUI:
         self.shorthand_input_password_mode = False
         self.flashing = None
 
+        self.min_width = 135
+        self.min_height = 40
+
         self.post_index = 0
+        self.post_line_max = 10
+        self.post_char_max = 80
 
     def run(self):
         """Continue running the TUI until get interrupted"""
@@ -121,6 +135,21 @@ class TUI:
     def input_stream(self):
         """Waiting an input and run a proper method according to type of input"""
         while True:
+            # Check terminal size and display error message if needed
+            if self.height < self.min_height or self.width < self.min_width:
+                if self.window.getch() == ascii.ESC:
+                    break
+
+                self.height, self.width = self.window.getmaxyx()
+                self.window.erase()
+                self.window.box()
+
+                flash(self, f"Terminal window too small. Minimum size is {self.min_width}x{self.min_height}", no_enter=True)
+
+                self.window.refresh()
+
+                continue
+
             display_func, input_func = self.display_states[self.state]
             display_func(self)
 
@@ -152,7 +181,8 @@ class TUI:
             elif ch == curses.KEY_RESIZE:
                 self.height, self.width = self.window.getmaxyx()
                 self.max_lines = self.height - 5
-                self.page = self.bottom // self.max_lines
+                self.page = self.bottom // (self.max_lines + 1)
+
                 continue
 
             input_func(self, ch)
@@ -259,17 +289,8 @@ def generate_dummy_users_posts():
             Hi all!\n
             My name is {u.username} and I'm looking for a date on XX/YY. I like blah and blah\n
             and blah as well.\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
-            and this\n
+            and this.\n
+            80808080808080808080808080808080808080808080808080808080808080808080808080808end\n
             \n
             I really look forward to meeting y'all this year!\n
             \n

@@ -34,3 +34,11 @@ class RegisterState(Enum):
 
     REGISTER = 5
     BACK_TO_LOGIN = 6
+
+
+class NewPostState(Enum):
+    WAIT_FOR_VIM = 0
+    REVIEW_POST = 1
+
+    SUBMIT_POST = 2
+    BACK_TO_VIM = 3

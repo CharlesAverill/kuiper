@@ -4,7 +4,7 @@ import re
 from .states import RegisterState, LoginState
 
 
-def validate_email(cfg, email):
+def validate_email(email, cfg):
     return re.match(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
                     email) and email.endswith(cfg["required_email_suffix"])
 
@@ -21,7 +21,7 @@ def validate_user_registration(vals, client, cfg):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN):
             return "All fields are mandatory"
-    if not validate_email(vals[RegisterState.EMAIL]):
+    if not validate_email(vals[RegisterState.EMAIL], cfg):
         return "Email is not valid"
     if len(vals[RegisterState.USERNAME]) < 5:
         return "Username must be at least 5 characters and end in '@utdallas.edu'"
@@ -42,7 +42,7 @@ def validate_user_registration(vals, client, cfg):
     return "valid"
 
 
-def validate_login(vals, sess):
+def validate_login(vals):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (LoginState.REGISTER, LoginState.LOGIN):
             return True
@@ -56,11 +56,16 @@ def add_center_string(TUI, string, y, max_x=None, min_x=0, color_pair_index=1):
     TUI.window.addstr(y, int(((max_x + min_x) / 2) - len(string) / 2), string, curses.color_pair(color_pair_index))
 
 
-def flash(TUI, message, color_pair_index=3):
+def flash(TUI, message, color_pair_index=3, no_enter=False):
     y, x = TUI.window.getmaxyx()
-    for i, string in enumerate([message, "Press Enter to continue"]):
-        string = string[:x - 2]
-        TUI.window.addstr(int(y / 2) + i,
+    message = message[:x - 2]
+    TUI.window.addstr(int(y / 2),
+                      int((TUI.width / 2) - len(message) / 2),
+                      message,
+                      curses.color_pair(color_pair_index))
+    if not no_enter:
+        string = "Press Enter to continue"[:x - 2]
+        TUI.window.addstr(int(y / 2) + 1,
                           int((TUI.width / 2) - len(string) / 2),
                           string,
                           curses.color_pair(color_pair_index))

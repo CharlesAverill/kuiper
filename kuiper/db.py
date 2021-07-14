@@ -1,6 +1,7 @@
 from .models import User, Post, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import datetime
 import os
@@ -11,6 +12,8 @@ def init_db(cfg, delete_db=False):
         os.unlink(cfg["db_path"])
 
     engine = create_engine("sqlite:///" + cfg["db_path"])
+    if delete_db:
+        Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     sess = sessionmaker(engine)
@@ -23,7 +26,7 @@ def register(email, username, password, age, major, session):
 
     u.email = email
     u.username = username
-    u.password = password
+    u.password = generate_password_hash(password)
     u.age = age
     u.major = major
 
@@ -55,9 +58,9 @@ def create_post(title, content, user_id, session):
 
 
 def login(username, password, session):
-    query = session.query(User).filter(User.username == username, User.password == password).first()
+    query = session.query(User).filter(User.username == username).first()
 
-    if not query:
+    if not query or not check_password_hash(query.password, password):
         return None
 
     return query.json()

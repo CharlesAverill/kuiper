@@ -1,7 +1,6 @@
 import datetime
 import json
 
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.functions import now
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, DateTime, Text
@@ -13,7 +12,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(Text)
     username = Column(Text(length=20))
-    password = Column(Text(length=20))
+    password = Column(Text)
 
     age = Column(Integer)
     major = Column(Text(length=20))

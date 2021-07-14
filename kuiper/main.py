@@ -96,7 +96,7 @@ def main():
         time.sleep(2)
 
     if args.server:
-        sess = init_db(cfg)
+        sess = init_db(cfg, delete_db=False)
         start_server(cfg, sess, args.quiet)
     else:
         client = Client(cfg["access_host"], cfg["port"])

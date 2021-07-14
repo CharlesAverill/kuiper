@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kuiper"
-version = "0.6.2"
+version = "0.6.5"
 description = "A terminal-based dating application for UTD students"
 readme = "README.md"
 homepage = "https://github.com/CharlesAverill/kuiper"
@@ -9,10 +9,11 @@ include = ["config.yaml"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-sqlalchemy = "1.4.20"
 PyYAML = "5.3"
-websockets = "9.1"
+sqlalchemy = "1.4.20"
 update-checker = "0.18.0"
+websockets = "9.1"
+werkzeug = "2.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

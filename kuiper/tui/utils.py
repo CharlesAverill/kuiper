@@ -1,12 +1,16 @@
 import curses
-import re
+import email_validator
 
 from .states import RegisterState, LoginState
 
 
 def validate_email(email, cfg):
-    return re.match(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-                    email) and email.endswith(cfg["required_email_suffix"])
+    try:
+        valid = email_validator.validate_email(email)
+
+        return str(valid.email).endswith(cfg["required_email_suffix"])
+    except email_validator.EmailNotValidError:
+        return False
 
 
 def validate_number(num):

@@ -274,6 +274,10 @@ class TUI:
         self.sub_state = None
         self.state = new_state
 
+        if new_state == WindowState.FORUM_VIEW:
+            self.update_posts(self.client.get_all_posts())
+            TUI.user_cache = {}
+
     def update_posts(self, new_posts):
         self.posts = new_posts
         items = []

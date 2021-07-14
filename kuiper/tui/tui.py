@@ -181,6 +181,7 @@ class TUI:
                     self.current_buf += unctrl
                 else:
                     curses.beep()
+
             if self.reading_shorthand_input and ch == curses.KEY_BACKSPACE or unctrl == "^?":
                 # Backspace
                 self.current_buf = self.current_buf[:-1]
@@ -196,6 +197,19 @@ class TUI:
                 continue
 
             input_func(self, ch)
+
+    def shift_sub_states(self, ch, up=True, down=True):
+        # Check for field changes, save to the buffers dictionary if changed, jump to next/prev field
+        state_list = self.states_lists[self.state]
+        if up and ch == curses.KEY_UP:
+            self.buffers[self.sub_state] = self.current_buf
+            self.sub_state = state_list[state_list.index(self.sub_state) - 1]
+            self.current_buf = self.buffers[self.sub_state] if self.sub_state in self.buffers.keys() else ""
+        elif down and ch == curses.KEY_DOWN:
+            self.buffers[self.sub_state] = self.current_buf
+            idx = state_list.index(self.sub_state) + 1
+            self.sub_state = state_list[0 if idx > len(state_list) - 1 else idx]
+            self.current_buf = self.buffers[self.sub_state] if self.sub_state in self.buffers.keys() else ""
 
     def scroll(self, direction):
         """Scrolling the window when pressing up/down arrow keys"""
@@ -276,7 +290,7 @@ class TUI:
 
         if new_state == WindowState.FORUM_VIEW:
             self.update_posts(self.client.get_all_posts())
-            TUI.user_cache = {}
+            self.user_cache = {}
 
     def update_posts(self, new_posts):
         self.posts = new_posts

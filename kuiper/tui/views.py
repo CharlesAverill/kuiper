@@ -4,6 +4,7 @@ from .. import __version__
 from ..models import User
 
 import curses
+import curses.ascii
 import math
 
 
@@ -48,6 +49,8 @@ def vlogin(TUI):
 
     if TUI.reading_shorthand_input:
         TUI.shorthand_input()
+
+    TUI.input_verification = curses.ascii.isalnum
 
     TUI.window.refresh()
 
@@ -100,11 +103,25 @@ def vregister(TUI):
     TUI.window.addstr(12, 3, "Back to Login",
                       curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
 
-    TUI.reading_shorthand_input = TUI.sub_state not in [RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN]
+    TUI.reading_shorthand_input = TUI.sub_state in [RegisterState.USERNAME,
+                                                    RegisterState.PASSWORD,
+                                                    RegisterState.EMAIL,
+                                                    RegisterState.AGE,
+                                                    RegisterState.MAJOR]
     TUI.shorthand_input_password_mode = TUI.sub_state == RegisterState.PASSWORD
 
     if TUI.reading_shorthand_input:
         TUI.shorthand_input()
+
+    if TUI.sub_state == RegisterState.AGE:
+        TUI.max_input_len = 2
+        TUI.input_verification = curses.ascii.isdigit
+    elif TUI.sub_state == RegisterState.EMAIL:
+        TUI.max_input_len = 40
+        TUI.input_verification = curses.ascii.isprint
+    else:
+        TUI.max_input_len = 20
+        TUI.input_verification = curses.ascii.isalnum
 
     TUI.window.refresh()
 

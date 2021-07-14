@@ -7,27 +7,11 @@ from .states import *
 from .utils import validate_user_registration, validate_login
 
 
-def shift_sub_states(TUI, ch, up=True, down=True):
-    # Check for field changes, save to the buffers dictionary if changed, jump to next/prev field
-    state_list = TUI.states_lists[TUI.state]
-    if up and ch == curses.KEY_UP:
-        TUI.buffers[TUI.sub_state] = TUI.current_buf
-        TUI.sub_state = state_list[state_list.index(TUI.sub_state) - 1]
-        TUI.current_buf = TUI.buffers[TUI.sub_state] if TUI.sub_state in TUI.buffers.keys() else ""
-    elif down and ch == curses.KEY_DOWN:
-        TUI.buffers[TUI.sub_state] = TUI.current_buf
-        idx = state_list.index(TUI.sub_state) + 1
-        TUI.sub_state = state_list[0 if idx > len(state_list) - 1 else idx]
-        TUI.current_buf = TUI.buffers[TUI.sub_state] if TUI.sub_state in TUI.buffers.keys() else ""
-
-
 def ilogin(TUI, ch):
     # Set validation values
-    TUI.input_verification = curses.ascii.isalnum
+    TUI.shift_sub_states(ch)
     TUI.max_input_len = 20
     unctrl = curses.ascii.unctrl(ch)
-
-    shift_sub_states(TUI, ch)
 
     # Carriage Return
     if ch == curses.KEY_ENTER or unctrl == "^I" or unctrl == "^J":
@@ -49,30 +33,17 @@ def ilogin(TUI, ch):
         elif TUI.sub_state == LoginState.EXIT:
             exit("Thank you for using kuiper!")
         else:
-            shift_sub_states(TUI, curses.KEY_DOWN, up=False)
+            TUI.shift_sub_states(curses.KEY_DOWN, up=False)
 
 
 def iregister(TUI, ch):
-    shift_sub_states(TUI, ch)
-    unctrl = curses.ascii.unctrl(ch)
+    TUI.shift_sub_states(ch)
 
-    if TUI.sub_state == RegisterState.AGE:
-        TUI.max_input_len = 2
-        TUI.input_verification = curses.ascii.isdigit
-    elif TUI.sub_state == RegisterState.EMAIL:
-        TUI.max_input_len = 40
-        TUI.input_verification = curses.ascii.isprint
-    else:
-        TUI.max_input_len = 20
-        TUI.input_verification = curses.ascii.isalnum
+    unctrl = curses.ascii.unctrl(ch)
 
     # Carriage Return
     if ch == curses.KEY_ENTER or unctrl == "^I" or unctrl == "^J":
         if TUI.sub_state == RegisterState.REGISTER:
-            # Perform Registration
-            if TUI.reading_shorthand_input:
-                TUI.shorthand_input()
-
             vals = TUI.buffers
             try:
                 validation = validate_user_registration(vals, TUI.client, TUI.cfg)
@@ -92,7 +63,7 @@ def iregister(TUI, ch):
         elif TUI.sub_state == RegisterState.BACK_TO_LOGIN:
             TUI.update_state(WindowState.LOGIN)
         else:
-            shift_sub_states(TUI, curses.KEY_DOWN, up=False)
+            TUI.shift_sub_states(curses.KEY_DOWN, up=False)
 
 
 def iforum(TUI, ch):

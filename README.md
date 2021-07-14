@@ -19,8 +19,9 @@ $ kuiper -d                    # Print configs
 $ kuiper -i                    # Initialize the database
 $ kuiper -h                    # View the help menu
 $ kuiper -l new_configs.yaml   # Update server configs
+$ kuiper --local_server        # Connect to localhost server
 $ kuiper -q                    # Suppress server output
-$ kuiper -s                    # Start kuiper server
+$ kuiper -s                    # Start server
 ```
 
 Menu navigation is controlled by the up and down arrow keys.

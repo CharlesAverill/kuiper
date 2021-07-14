@@ -1,5 +1,5 @@
 from .models import User, Post, Base
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import datetime
@@ -31,17 +31,26 @@ def register(email, username, password, age, major, session):
     session.commit()
 
 
-def create_post(title, content, user, session):
+def create_post(title, content, user_id, session):
     p = Post()
     p.title = title
     p.content = content
     p.created_at = datetime.datetime.now()
+    p.user_id = user_id
 
-    if len(user.post) > 0:
-        user.post[0].user = None
-        user.post.append(p)
+    user = session.query(User).filter(User.id == int(user_id)).first()
+
+    if not user:
+        return False
+
+    if user.post_id:
+        session.query(Post).filter(Post.user_id == int(user_id)).delete()
 
     session.add(p)
+    session.commit()
+
+    user.post_id = p.id
+
     session.commit()
 
 
@@ -72,6 +81,15 @@ def get_user_by_email(email, session):
     return query.json()
 
 
+def get_user_by_id(user_id, session):
+    query = session.query(User).filter(User.id == int(user_id)).first()
+
+    if not query:
+        return None
+
+    return query.json()
+
+
 def get_post(post_id, session):
     query = session.query(Post).filter(Post.id == post_id).first()
 
@@ -79,3 +97,16 @@ def get_post(post_id, session):
         return None
 
     return query.json()
+
+
+def get_all_posts(session):
+    query = session.query(Post).all()
+
+    # Space is important
+    out = "[ "
+
+    for p in query:
+        out += p.json() + ","
+
+    # Remove last comma
+    return out[:-1] + "]"

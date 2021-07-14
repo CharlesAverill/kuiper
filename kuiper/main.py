@@ -1,12 +1,15 @@
 import argparse
 import os
 import pathlib
+import time
+import update_checker
 
 from yaml import load, dump, FullLoader, SafeDumper
 
 from .db import init_db
 from .tui import start_tui
 from .remote import Client, start_server
+from . import __version__
 
 ascii_art = r"""
 ┌───────────────────────────────────────────────────────────────┐
@@ -33,8 +36,11 @@ def main():
     parser.add_argument("-c",
                         "--credentials",
                         help="Your username/email and password, separated by a space and wrapped with quotes",
-                        default=None,
-                        type=str)
+                        default=None)
+    parser.add_argument("-d",
+                        "--dump_configs",
+                        help="Prints out your configs",
+                        action="store_true")
     parser.add_argument("-i",
                         "--init_db",
                         action="store_true",
@@ -42,6 +48,9 @@ def main():
     parser.add_argument("-l",
                         "--load_configs",
                         help="Path to a .yaml file for server configurations")
+    parser.add_argument("--local_server",
+                        action="store_true",
+                        help="Access a server on 127.0.0.1 instead of the access_host in your configurations")
     parser.add_argument("-q",
                         "--quiet",
                         action="store_true",
@@ -72,13 +81,26 @@ def main():
                 dump(cfg, old_stream, SafeDumper)
         exit("Configurations loaded")
 
-    sess = init_db(cfg)
+    if args.dump_configs:
+        for key, val in cfg.items():
+            print(f"{key}: {val}")
+        exit()
+
+    if args.local_server:
+        cfg["access_host"] = "127.0.0.1"
+
+    uc = update_checker.UpdateChecker()
+    result = uc.check("kuiper", __version__)
+    if result:
+        print(result)
+        time.sleep(2)
 
     if args.server:
+        sess = init_db(cfg)
         start_server(cfg, sess, args.quiet)
     else:
         client = Client(cfg["access_host"], cfg["port"])
-        start_tui(sess, client, cfg)
+        start_tui(client, cfg)
 
 
 if __name__ == "__main__":

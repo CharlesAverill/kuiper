@@ -5,29 +5,27 @@ License: https://github.com/mingrammer/python-curses-scroll-example/blob/master/
 
 from curses import wrapper
 from curses import ascii
+import tempfile
+import subprocess
 
 from .views import *
 from .input import *
 from .states import WindowState, LoginState
-from .utils import flash
-
-from ..models import Post, User
+from .utils import SuspendCurses
 
 
 class TUI:
     UP = -3
     DOWN = 3
 
-    def __init__(self, stdscr, state, session, client, posts, cfg, user=None):
+    def __init__(self, stdscr, state, client, cfg, user=None):
         self.window = stdscr
         self.state = state
-        self.sess = session
         self.client = client
         self.cfg = cfg
         self.items = []
-        self.posts = posts
-        for post in self.posts:
-            self.items.extend(str(post).split("\n"))
+        self.posts = []
+        self.reload_posts = True
         self.user = user
 
         self.sub_state = None
@@ -119,9 +117,16 @@ class TUI:
         self.min_width = 135
         self.min_height = 40
 
+        self.reload_posts = False
         self.post_index = 0
         self.post_line_max = 10
         self.post_char_max = 80
+
+        self.review_post_state = None
+        self.post_title = ""
+        self.post_lines = []
+
+        self.user_cache = {}
 
     def run(self):
         """Continue running the TUI until get interrupted"""
@@ -144,17 +149,22 @@ class TUI:
                 self.window.erase()
                 self.window.box()
 
-                flash(self, f"Terminal window too small. Minimum size is {self.min_width}x{self.min_height}", no_enter=True)
+                self.flash(f"Terminal window too small. Minimum size is {self.min_width}x{self.min_height}",
+                           no_enter=True)
 
                 self.window.refresh()
 
                 continue
 
+            if self.reload_posts:
+                self.update_posts(self.client.get_all_posts())
+                self.reload_posts = False
+
             display_func, input_func = self.display_states[self.state]
             display_func(self)
 
             if self.flashing is not None:
-                flash(self, self.flashing)
+                self.flash(self.flashing)
 
             ch = self.window.getch()
 
@@ -264,46 +274,71 @@ class TUI:
         self.sub_state = None
         self.state = new_state
 
+    def update_posts(self, new_posts):
+        self.posts = new_posts
+        items = []
+        for post in self.posts:
+            items.extend(str(post).split("\n"))
+        self.update_items(items)
 
-def generate_dummy_users_posts():
-    users = []
-    posts = []
+    def flash(self, message, color_pair_index=3, no_enter=False):
+        y, x = self.window.getmaxyx()
+        message = message[:x - 2]
+        self.window.addstr(int(y / 2),
+                           int((self.width / 2) - len(message) / 2),
+                           message,
+                           curses.color_pair(color_pair_index))
+        if not no_enter:
+            string = "Press Enter to continue"[:x - 2]
+            self.window.addstr(int(y / 2) + 1,
+                               int((self.width / 2) - len(string) / 2),
+                               string,
+                               curses.color_pair(color_pair_index))
 
-    usernames = ["Charles", "Alan", "Tim", "Grace", "Ada", "Donald", "Dennis", "John", "Linus"]
-    majors = ["Mech", "CS", "DS", "EE", "Business"]
-    ages = [18, 19, 20, 21, 22]
+    def add_center_string(self, string, y, max_x=None, min_x=0, color_pair_index=1):
+        if max_x is None:
+            max_x = self.width
+        # Clip string so it doesn't go out of bounds
+        string = string[:max_x - min_x - 2]
+        self.window.addstr(y, int(((max_x + min_x) / 2) - len(string) / 2), string, curses.color_pair(color_pair_index))
 
-    import random
-    import datetime
+    def get_from_text_editor(self):
+        # Create a temporary file to write to
+        tf = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+        tf_name = tf.name
+        tf.close()
 
-    for i in range(50):
-        u = User()
-        u.username = random.choice(usernames)
-        u.email = f"{u.username}@utdallas.edu"
-        u.age = random.choice(ages)
-        u.major = random.choice(majors)
+        try:
+            # If modifying
+            if len(self.post_lines) or len(self.post_title):
+                with open(tf_name, "a") as tf_stream:
+                    tf_stream.writelines([self.post_title] + self.post_lines)
 
-        p = Post()
-        p.title = f"Looking for a date {i}"
-        p.content = f"""
-            Hi all!\n
-            My name is {u.username} and I'm looking for a date on XX/YY. I like blah and blah\n
-            and blah as well.\n
-            and this.\n
-            80808080808080808080808080808080808080808080808080808080808080808080808080808end\n
-            \n
-            I really look forward to meeting y'all this year!\n
-            \n
-            Yours truly, \n
-            {u.username}
-            """
-        p.user = u
-        p.created_at = datetime.datetime(2021, 7, 8, random.randint(0, 23))
+            # Suspend TUI and open temporary file in cfg text editor
+            with SuspendCurses():
+                subprocess.call([self.cfg["text_editor"], tf_name])
 
-        users.append(u)
-        posts.append(p)
+            # Make sure our terminal looks good afterwards
+            self.window.refresh()
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
 
-    return users, posts
+            # Read into post_lines
+            with open(tf_name, "r") as tf_stream:
+                self.post_lines = tf_stream.readlines()
+
+            # Truncate lines and columns
+            self.post_title = self.post_lines[0][:self.post_char_max]
+            self.post_lines = [line[:self.post_char_max] for line in self.post_lines][1:self.post_line_max]
+
+            return True
+        except PermissionError:
+            self.flashing = "Permission Error when booting text editor. Check your configs."
+            return False
+        except Exception:
+            self.flashing = "Unknown Exception when booting text editor. Check your configs."
+            return False
 
 
 def main(stdscr, *args):
@@ -311,13 +346,12 @@ def main(stdscr, *args):
     :param stdscr: Provided by curses.wrapper
     :param args: [Session, Client, Configs]
     """
-    users, posts = generate_dummy_users_posts()
 
     state = WindowState.LOGIN
-    tui = TUI(stdscr, state, args[0], args[1], posts, args[2])
+    tui = TUI(stdscr, state, args[0], args[1])
 
     tui.run()
 
 
-def start_tui(session, client, cfg):
-    wrapper(main, session, client, cfg)
+def start_tui(client, cfg):
+    wrapper(main, client, cfg)

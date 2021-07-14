@@ -3,7 +3,7 @@ import datetime
 import json
 import websockets
 
-from ..db import login, register, get_user_by_username, get_user_by_email, get_post
+from ..db import *
 
 sess = None
 quiet = False
@@ -32,6 +32,12 @@ async def websocket_main_loop(websocket, path):
             response["STATUS"] = "SUCCESSFUL"
         except Exception as e:
             print(f"Error during registration: {e}")
+    elif data["ACTION"] == "CREATE_POST":
+        try:
+            create_post(data["TITLE"], data["CONTENT"], data["USER_ID"], sess)
+            response["STATUS"] = "SUCCESSFUL"
+        except Exception as e:
+            print(f"Error during post creation: {e}")
     elif data["ACTION"] == "GET_USER_USERNAME":
         query = get_user_by_username(data["USERNAME"], sess)
         if query:
@@ -42,11 +48,20 @@ async def websocket_main_loop(websocket, path):
         if query:
             response.update(json.loads(query))
             response["STATUS"] = "SUCCESSFUL"
+    elif data["ACTION"] == "GET_USER_ID":
+        query = get_user_by_id(data["USER_ID"], sess)
+        if query:
+            response.update(json.loads(query))
+            response["STATUS"] = "SUCCESSFUL"
     elif data["ACTION"] == "GET_POST":
         query = get_post(data["POST_ID"], sess)
         if query:
             response.update(json.loads(query))
             response["STATUS"] = "SUCCESSFUL"
+    elif data["ACTION"] == "GET_ALL_POSTS":
+        dump = get_all_posts(sess)
+        response.update({"POSTS_JSON": dump})
+        response["STATUS"] = "SUCCESSFUL"
 
     if not quiet:
         print(f" - {response['STATUS']} at {datetime.datetime.now().strftime(date_format)}")

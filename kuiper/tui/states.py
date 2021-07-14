@@ -42,3 +42,5 @@ class NewPostState(Enum):
 
     SUBMIT_POST = 2
     BACK_TO_VIM = 3
+
+    SUBMITTED = 4

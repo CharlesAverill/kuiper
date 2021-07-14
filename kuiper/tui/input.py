@@ -1,7 +1,5 @@
 import curses
 import curses.ascii
-import tempfile
-import subprocess
 
 from ..models import User
 
@@ -113,7 +111,10 @@ def iforum(TUI, ch):
         if ch == curses.KEY_ENTER or unctrl == "^J":
             exit("Select")
         elif unctrl == "n":
-            exit("New post")
+            TUI.post_title = ""
+            TUI.post_lines = []
+            TUI.update_state(WindowState.NEW_POST_VIEW)
+            TUI.sub_state = NewPostState.WAIT_FOR_VIM
         elif unctrl == "c":
             exit("Comment")
         elif unctrl == "h":
@@ -122,6 +123,9 @@ def iforum(TUI, ch):
             exit("Account menu")
         elif unctrl == "p":
             exit("View post")
+        elif unctrl == "r":
+            TUI.reload_posts = True
+            TUI.user_cache = {}
         elif unctrl == "l":
             TUI.user = None
             TUI.update_state(WindowState.LOGIN)
@@ -129,11 +133,30 @@ def iforum(TUI, ch):
 
 def inew_post(TUI, ch):
     unctrl = curses.ascii.unctrl(ch)
-    if TUI.sub_state == NewPostState.REVIEW_POST:
-        shift_sub_states(TUI, ch)
+
     if ch == curses.KEY_ENTER or unctrl == "^J":
         if TUI.sub_state == NewPostState.WAIT_FOR_VIM:
-            exit("Open Vim")
-    elif TUI.state == NewPostState.REVIEW_POST:
-        if ch == curses.KEY_ENTER or unctrl == "^J":
-            exit("Open Vim")
+            # Get post from text editor
+            if not TUI.get_from_text_editor():
+                return
+            TUI.sub_state = NewPostState.REVIEW_POST
+            TUI.review_post_state = NewPostState.SUBMIT_POST
+        elif TUI.sub_state == NewPostState.SUBMITTED:
+            # Go back to forum
+            TUI.post_lines = []
+            TUI.post_title = ""
+            TUI.update_state(WindowState.FORUM_VIEW)
+    elif (ch == curses.KEY_BACKSPACE or unctrl == "^?") and TUI.sub_state == NewPostState.WAIT_FOR_VIM:
+        # Go back to forum
+        TUI.post_lines = []
+        TUI.post_title = ""
+        TUI.update_state(WindowState.FORUM_VIEW)
+    elif unctrl == "s" and TUI.sub_state == NewPostState.REVIEW_POST:
+        # Submit post to database
+        if TUI.client.create_post(TUI.post_title, "\n".join(TUI.post_lines).strip(), TUI.user.id):
+            TUI.sub_state = NewPostState.SUBMITTED
+        else:
+            TUI.flashing = "There was an error submitting your post"
+    elif unctrl == "m" and TUI.sub_state == NewPostState.REVIEW_POST:
+        TUI.sub_state = NewPostState.WAIT_FOR_VIM
+        TUI.review_post_state = NewPostState.SUBMIT_POST

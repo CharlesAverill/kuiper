@@ -1,10 +1,9 @@
 import datetime
 import json
 
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column
 from sqlalchemy.sql.functions import now
-from sqlalchemy.types import DateTime, Integer, UnicodeText
+from sqlalchemy.types import DateTime, Integer, UnicodeText, Text
 
 from . import Base
 
@@ -19,8 +18,7 @@ class Post(Base):
     content = Column(UnicodeText, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=now())
 
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship("User", back_populates="post")
+    user_id = Column(Integer)
 
     __tablename__ = "post"
 
@@ -36,9 +34,10 @@ class Post(Base):
 
     def from_json(self, data):
         self.id = data["POST_ID"]
-        self.title = data["TITLE"]
-        self.content = data["CONTENT"]
+        self.title = data["TITLE"].strip()
+        self.content = data["CONTENT"].strip()
         self.created_at = datetime.datetime.strptime(data["CREATED_AT"], date_format)
+        self.user_id = data["USER_ID"]
 
     def json(self):
         return json.dumps({
@@ -50,6 +49,6 @@ class Post(Base):
         })
 
     def __str__(self):
-        return f"{self.user.username}\n" \
+        return f"{self.user_id}\n" \
                f"{self.title}\n" \
                f"{self.time_left[:2]}H"

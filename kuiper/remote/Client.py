@@ -2,6 +2,8 @@ import asyncio
 import json
 import websockets
 
+from ..models import Post
+
 
 class Client:
     def __init__(self, host, port):
@@ -41,13 +43,12 @@ class Client:
 
         return response["STATUS"] == "SUCCESSFUL"
 
-    def create_post(self, title, content, user_id, created_at):
+    def create_post(self, title, content, user_id):
         response = self.send({
             "ACTION": "CREATE_POST",
             "TITLE": title,
             "CONTENT": content,
-            "USER_ID": user_id,
-            "CREATED_AT": created_at
+            "USER_ID": user_id
         })
 
         return response["STATUS"] == "SUCCESSFUL"
@@ -70,6 +71,15 @@ class Client:
         if response["STATUS"] == "SUCCESSFUL":
             return response
 
+    def get_user_by_id(self, user_id):
+        response = self.send({
+            "ACTION": "GET_USER_ID",
+            "USER_ID": user_id
+        })
+
+        if response["STATUS"] == "SUCCESSFUL":
+            return response
+
     def get_post(self, post_id):
         response = self.send({
             "ACTION": "GET_USER",
@@ -78,3 +88,16 @@ class Client:
 
         if response["STATUS"] == "SUCCESSFUL":
             return response
+
+    def get_all_posts(self):
+        response = self.send({
+            "ACTION": "GET_ALL_POSTS"
+        })
+
+        if response["STATUS"] == "SUCCESSFUL":
+            out = []
+            for post in json.loads(response["POSTS_JSON"]):
+                p = Post()
+                p.from_json(post)
+                out.append(p)
+            return out

@@ -2,17 +2,31 @@
 
 A terminal-based dating application for UTD students, built with the `curses` API.
 
+## Installation
+
+Unfamiliar with terminal stuff? Here's what you need to start using Kuiper:
+
+1. [Install Python](https://www.python.org/downloads/release/python-379/)
+2. Open up your terminal or command line
+3. Type in `python3 -m pip install kuiper`. You may receive some nasty output, that's alright. Mac users might need to install XCode tools
+4. Now you're ready to use Kuiper! Just type `kuiper` into your command line, and the TUI should boot.
+
 ## Usage
 ```bash
-$ pip install kuiper           # Install
 $ kuiper                       # Start the TUI
 $ kuiper -c USERNAME PASSWORD  # Login with credentials
+$ kuiper -d                    # Print configs
 $ kuiper -i                    # Initialize the database
 $ kuiper -h                    # View the help menu
 $ kuiper -l new_configs.yaml   # Update server configs
 $ kuiper -q                    # Suppress server output
 $ kuiper -s                    # Start kuiper server
 ```
+
+Menu navigation is controlled by the up and down arrow keys.
+
+When filling out a form field, the string in the bottom-right corner is the current buffer. 
+Hit "Enter" to save the form field.
 
 ## Configs
 

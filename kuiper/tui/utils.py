@@ -48,24 +48,11 @@ def validate_login(vals):
             return True
 
 
-def add_center_string(TUI, string, y, max_x=None, min_x=0, color_pair_index=1):
-    if max_x is None:
-        max_x = TUI.width
-    # Clip string so it doesn't go out of bounds
-    string = string[:max_x - min_x - 2]
-    TUI.window.addstr(y, int(((max_x + min_x) / 2) - len(string) / 2), string, curses.color_pair(color_pair_index))
+class SuspendCurses:
+    def __enter__(self):
+        curses.endwin()
 
-
-def flash(TUI, message, color_pair_index=3, no_enter=False):
-    y, x = TUI.window.getmaxyx()
-    message = message[:x - 2]
-    TUI.window.addstr(int(y / 2),
-                      int((TUI.width / 2) - len(message) / 2),
-                      message,
-                      curses.color_pair(color_pair_index))
-    if not no_enter:
-        string = "Press Enter to continue"[:x - 2]
-        TUI.window.addstr(int(y / 2) + 1,
-                          int((TUI.width / 2) - len(string) / 2),
-                          string,
-                          curses.color_pair(color_pair_index))
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        newscr = curses.initscr()
+        newscr.refresh()
+        curses.doupdate()

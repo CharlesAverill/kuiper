@@ -6,4 +6,4 @@ db_path: "kuiper.db"
 
 required_email_suffix: "@utdallas.edu"
 
-text_editor: "vim"
+text_editor: "nano"

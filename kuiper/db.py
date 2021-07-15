@@ -1,5 +1,5 @@
 from .models import User, Post, Base
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -113,3 +113,30 @@ def get_all_posts(session):
 
     # Remove last comma
     return out[:-1] + "]"
+
+
+def update_user(user_id, new_values, session):
+    user = session.query(User).filter(User.id == int(user_id)).first()
+
+    if not user:
+        return False
+
+    for key in new_values.keys():
+        if key == "USERNAME":
+            user.username = new_values[key]
+        elif key == "AGE":
+            user.age = new_values[key]
+        elif key == "MAJOR":
+            user.major = new_values[key]
+        elif key == "PASSWORD":
+            user.password = generate_password_hash(new_values[key])
+
+    return True
+
+
+def delete_post(post_id, session):
+    try:
+        session.query(Post).filter(Post.id == post_id).delete()
+    except exc.SQLAlchemyError:
+        return False
+    return True

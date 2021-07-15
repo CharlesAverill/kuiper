@@ -62,6 +62,12 @@ async def websocket_main_loop(websocket, path):
         dump = get_all_posts(sess)
         response.update({"POSTS_JSON": dump})
         response["STATUS"] = "SUCCESSFUL"
+    elif data["ACTION"] == "UPDATE_USER":
+        if update_user(data["USER_ID"], data, sess):
+            response["STATUS"] = "SUCCESSFUL"
+    elif data["ACTION"] == "DELETE_POST":
+        if delete_post(data["POST_ID"], sess):
+            response["STATUS"] = "SUCCESSFUL"
 
     if not quiet:
         print(f" - {response['STATUS']} at {datetime.datetime.now().strftime(date_format)}")

@@ -101,3 +101,22 @@ class Client:
                 p.from_json(post)
                 out.append(p)
             return out
+
+    def update_user(self, user_id, new_values):
+        payload = {
+            "ACTION": "UPDATE_USER",
+            "USER_ID": user_id
+        }
+        payload.update(new_values)
+
+        response = self.send(payload)
+
+        return response["STATUS"] == "SUCCESSFUL"
+
+    def delete_post(self, post_id):
+        response = self.send({
+            "ACTION": "DELETE_POST",
+            "POST_ID": post_id
+        })
+
+        return response["STATUS"] == "SUCCESSFUL"

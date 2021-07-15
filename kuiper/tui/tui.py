@@ -10,7 +10,7 @@ import subprocess
 
 from .views import *
 from .input import *
-from .states import WindowState, LoginState
+from .states import WindowState, states_lists, states_dicts
 from .utils import SuspendCurses
 
 
@@ -56,54 +56,12 @@ class TUI:
             WindowState.LOGIN: (vlogin, ilogin),
             WindowState.REGISTER: (vregister, iregister),
             WindowState.FORUM_VIEW: (vforum, iforum),
-            WindowState.NEW_POST_VIEW: (vnew_post, inew_post)
+            WindowState.NEW_POST_VIEW: (vnew_post, inew_post),
+            WindowState.ACCOUNT_MENU: (vaccount_menu, iaccount_menu)
         }
 
-        self.states_dicts = {
-            WindowState.LOGIN: {
-                LoginState.USERNAME: "username",
-                LoginState.PASSWORD: "password",
-                LoginState.LOGIN: None,
-                LoginState.REGISTER: None,
-                LoginState.EXIT: None
-            },
-            WindowState.REGISTER: {
-                RegisterState.USERNAME: "username",
-                RegisterState.EMAIL: "email",
-                RegisterState.PASSWORD: "password",
-                RegisterState.AGE: "age",
-                RegisterState.MAJOR: "major",
-                RegisterState.REGISTER: None,
-                RegisterState.BACK_TO_LOGIN: None
-            },
-            WindowState.NEW_POST_VIEW: {
-                NewPostState.SUBMIT_POST: None,
-                NewPostState.BACK_TO_VIM: None
-            }
-        }
-
-        self.states_lists = {
-            WindowState.LOGIN: [
-                LoginState.USERNAME,
-                LoginState.PASSWORD,
-                LoginState.LOGIN,
-                LoginState.REGISTER,
-                LoginState.EXIT
-            ],
-            WindowState.REGISTER: [
-                RegisterState.USERNAME,
-                RegisterState.EMAIL,
-                RegisterState.PASSWORD,
-                RegisterState.AGE,
-                RegisterState.MAJOR,
-                RegisterState.REGISTER,
-                RegisterState.BACK_TO_LOGIN
-            ],
-            WindowState.NEW_POST_VIEW: [
-                NewPostState.SUBMIT_POST,
-                NewPostState.BACK_TO_VIM
-            ]
-        }
+        self.states_lists = states_lists
+        self.states_dicts = states_dicts
 
         self.input_verification = ascii.isalnum
         self.max_input_len = None
@@ -140,63 +98,66 @@ class TUI:
     def input_stream(self):
         """Waiting an input and run a proper method according to type of input"""
         while True:
-            # Check terminal size and display error message if needed
-            if self.height < self.min_height or self.width < self.min_width:
-                if self.window.getch() == ascii.ESC:
+            try:
+                # Check terminal size and display error message if needed
+                if self.height < self.min_height or self.width < self.min_width:
+                    if self.window.getch() == ascii.ESC:
+                        break
+
+                    self.height, self.width = self.window.getmaxyx()
+                    self.window.erase()
+                    self.window.box()
+
+                    self.flash(f"Terminal window too small. Minimum size is {self.min_width}x{self.min_height}",
+                               no_enter=True)
+
+                    self.window.refresh()
+
+                    continue
+
+                if self.reload_posts:
+                    self.update_posts(self.client.get_all_posts())
+                    self.reload_posts = False
+
+                display_func, input_func = self.display_states[self.state]
+                display_func(self)
+
+                if self.flashing is not None:
+                    self.flash(self.flashing)
+
+                ch = self.window.getch()
+
+                unctrl = curses.ascii.unctrl(ch)
+
+                if self.flashing is not None:
+                    if ch == curses.KEY_ENTER or unctrl == "^J":
+                        self.flashing = None
+                    continue
+
+                if self.reading_shorthand_input and self.input_verification(ch):
+                    if self.max_input_len is None or (
+                            self.max_input_len is not None and len(self.current_buf) < self.max_input_len):
+                        self.current_buf += unctrl
+                    else:
+                        curses.beep()
+
+                if self.reading_shorthand_input and ch == curses.KEY_BACKSPACE or unctrl == "^?":
+                    # Backspace
+                    self.current_buf = self.current_buf[:-1]
+
+                elif ch == ascii.ESC:
                     break
 
-                self.height, self.width = self.window.getmaxyx()
-                self.window.erase()
-                self.window.box()
+                elif ch == curses.KEY_RESIZE:
+                    self.height, self.width = self.window.getmaxyx()
+                    self.max_lines = self.height - 5
+                    self.page = self.bottom // (self.max_lines + 1)
 
-                self.flash(f"Terminal window too small. Minimum size is {self.min_width}x{self.min_height}",
-                           no_enter=True)
+                    continue
 
-                self.window.refresh()
-
-                continue
-
-            if self.reload_posts:
-                self.update_posts(self.client.get_all_posts())
-                self.reload_posts = False
-
-            display_func, input_func = self.display_states[self.state]
-            display_func(self)
-
-            if self.flashing is not None:
-                self.flash(self.flashing)
-
-            ch = self.window.getch()
-
-            unctrl = curses.ascii.unctrl(ch)
-
-            if self.flashing is not None:
-                if ch == curses.KEY_ENTER or unctrl == "^J":
-                    self.flashing = None
-                continue
-
-            if self.reading_shorthand_input and self.input_verification(ch):
-                if self.max_input_len is None or (
-                        self.max_input_len is not None and len(self.current_buf) < self.max_input_len):
-                    self.current_buf += unctrl
-                else:
-                    curses.beep()
-
-            if self.reading_shorthand_input and ch == curses.KEY_BACKSPACE or unctrl == "^?":
-                # Backspace
-                self.current_buf = self.current_buf[:-1]
-
-            elif ch == ascii.ESC:
-                break
-
-            elif ch == curses.KEY_RESIZE:
-                self.height, self.width = self.window.getmaxyx()
-                self.max_lines = self.height - 5
-                self.page = self.bottom // (self.max_lines + 1)
-
-                continue
-
-            input_func(self, ch)
+                input_func(self, ch)
+            except ConnectionRefusedError:
+                TUI.flashing = "Cannot find host, please check your internet connection"
 
     def shift_sub_states(self, ch, up=True, down=True):
         # Check for field changes, save to the buffers dictionary if changed, jump to next/prev field

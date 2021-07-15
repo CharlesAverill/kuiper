@@ -205,7 +205,8 @@ def vforum(TUI):
             TUI.window.addstr(3, label_start, "Major:     ", curses.color_pair(4))
             TUI.window.addstr(3, field_start, user.major[:TUI.width - field_start - 1], curses.color_pair(1))
             TUI.window.addstr(4, label_start, "Time Left: ", curses.color_pair(4))
-            TUI.window.addstr(4, field_start, current_post.time_left[:TUI.width - field_start - 1], curses.color_pair(1))
+            TUI.window.addstr(4, field_start, current_post.time_left[:TUI.width - field_start - 1],
+                              curses.color_pair(1))
 
             for idx, line in enumerate(current_post.content.strip().split("\n")[::2]):
                 if 6 + idx < int(TUI.height / 2):
@@ -218,7 +219,7 @@ def vforum(TUI):
                               color_pair_index=4)
 
     # Command bar (spread across comments section bottom)
-    commands = ["ENTER = Select Post", "[r]eload Feed","[n]ew Post", "View My [p]ost",
+    commands = ["ENTER = Select Post", "[r]eload Feed", "[n]ew Post", "View My [p]ost",
                 "[a]ccount Menu", "[l]ogout", "[h]elp", "ESC = exit"]
     commands_len = len("".join(commands))
     n_whitespace_chars = int((TUI.width - border_20_percent - commands_len) / len(commands)) - 1
@@ -232,6 +233,9 @@ def vnew_post(TUI):
     """Display the new post prompt"""
     TUI.window.erase()
     TUI.window.box()
+
+    if TUI.sub_state is None:
+        TUI.sub_state = NewPostState.WAIT_FOR_VIM
 
     quarter_height = max(2, int(TUI.height / 8))
     half_height = int(TUI.height / 2)
@@ -282,5 +286,80 @@ def vnew_post(TUI):
     elif TUI.sub_state == NewPostState.SUBMITTED:
         TUI.add_center_string("Post submitted!", half_height)
         TUI.add_center_string("Press Enter to go back to the Forum", half_height + 1)
+
+    TUI.window.refresh()
+
+
+def vaccount_menu(TUI):
+    """Display login prompt"""
+    TUI.window.erase()
+    TUI.window.box()
+
+    if TUI.sub_state is None:
+        TUI.sub_state = AccountMenuState.USERNAME
+
+    # Header
+    TUI.add_center_string("Account Menu", 1, color_pair_index=4)
+
+    # Username label and field
+    color_pair = 2 if TUI.sub_state == AccountMenuState.USERNAME else 1
+    if AccountMenuState.USERNAME in TUI.buffers.keys():
+        TUI.window.addstr(5, 13, TUI.buffers[AccountMenuState.USERNAME][:TUI.width - 14], curses.color_pair(color_pair))
+    TUI.window.addstr(5, 3, "Username:", curses.color_pair(color_pair))
+
+    # Age label and field
+    color_pair = 2 if TUI.sub_state == AccountMenuState.AGE else 1
+    if AccountMenuState.AGE in TUI.buffers.keys():
+        TUI.window.addstr(6, 13, TUI.buffers[AccountMenuState.AGE][:TUI.width - 14], curses.color_pair(color_pair))
+    TUI.window.addstr(6, 3, "Age:", curses.color_pair(color_pair))
+
+    # Major label and field
+    color_pair = 2 if TUI.sub_state == AccountMenuState.MAJOR else 1
+    if AccountMenuState.MAJOR in TUI.buffers.keys():
+        TUI.window.addstr(7, 13, TUI.buffers[AccountMenuState.MAJOR][:TUI.width - 14], curses.color_pair(color_pair))
+    TUI.window.addstr(7, 3, "Major:", curses.color_pair(color_pair))
+
+    # Password label and field
+    color_pair = 2 if TUI.sub_state == AccountMenuState.RESET_PASSWORD else 1
+    if AccountMenuState.RESET_PASSWORD in TUI.buffers.keys():
+        TUI.window.addstr(9, 21, ("*" * len(TUI.buffers[AccountMenuState.RESET_PASSWORD]))[:TUI.width - 14],
+                          curses.color_pair(color_pair))
+    TUI.window.addstr(9, 3, "Reset Password:", curses.color_pair(color_pair))
+
+    # Confirm Password label and field
+    color_pair = 2 if TUI.sub_state == AccountMenuState.CONFIRM_PASSWORD else 1
+    if AccountMenuState.CONFIRM_PASSWORD in TUI.buffers.keys():
+        TUI.window.addstr(10, 21, ("*" * len(TUI.buffers[AccountMenuState.CONFIRM_PASSWORD]))[:TUI.width - 14],
+                          curses.color_pair(color_pair))
+    TUI.window.addstr(10, 3, "Confirm Password:", curses.color_pair(color_pair))
+
+    # Submit Updates button
+    TUI.window.addstr(12, 3, "Submit Profile Updates",
+                      curses.color_pair(2 if TUI.sub_state == AccountMenuState.SUBMIT_UPDATES else 1))
+
+    # View My Post button
+    TUI.window.addstr(14, 3, "View My Post", curses.color_pair(2 if TUI.sub_state == AccountMenuState.VIEW_MY_POST
+                                                               else 1))
+
+    # Delete My Post button
+    TUI.window.addstr(15, 3, "Delete My Post", curses.color_pair(2 if TUI.sub_state == AccountMenuState.DELETE_MY_POST
+                                                                 else 1))
+
+    # Back To Forum button
+    TUI.window.addstr(17, 3, "Back to Forum", curses.color_pair(2 if TUI.sub_state == AccountMenuState.BACK_TO_FORUM
+                                                                else 1))
+
+    TUI.reading_shorthand_input = TUI.sub_state in [AccountMenuState.USERNAME,
+                                                    AccountMenuState.RESET_PASSWORD,
+                                                    AccountMenuState.AGE,
+                                                    AccountMenuState.MAJOR,
+                                                    AccountMenuState.CONFIRM_PASSWORD]
+    TUI.shorthand_input_password_mode = TUI.sub_state in [AccountMenuState.CONFIRM_PASSWORD,
+                                                          AccountMenuState.RESET_PASSWORD]
+
+    if TUI.reading_shorthand_input:
+        TUI.shorthand_input()
+
+    TUI.input_verification = curses.ascii.isalnum
 
     TUI.window.refresh()

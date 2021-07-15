@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "kuiper"
-version = "0.6.7"
+version = "0.7.0"
 description = "A terminal-based dating application for UTD students"
 readme = "README.md"
 homepage = "https://github.com/CharlesAverill/kuiper"
 authors = ["CharlesAverill <charlesaverill20@gmail.com>"]
 include = ["config.yaml"]
+license = "GPL-3.0-only"
 
 [tool.poetry.dependencies]
 python = "^3.7"

@@ -135,8 +135,9 @@ def update_user(user_id, new_values, session):
 
 
 def delete_post(post_id, session):
-    try:
-        session.query(Post).filter(Post.id == post_id).delete()
-    except exc.SQLAlchemyError:
+    query = session.query(Post).filter(Post.id == post_id)
+    if query.first():
+        query.delete()
+        return True
+    else:
         return False
-    return True

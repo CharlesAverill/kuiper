@@ -252,6 +252,13 @@ class TUI:
         if new_state == WindowState.FORUM_VIEW:
             self.update_posts(self.client.get_all_posts())
             self.user_cache = {}
+        elif new_state == WindowState.ACCOUNT_MENU:
+            self.buffers = {
+                AccountMenuState.USERNAME: self.user.username,
+                AccountMenuState.AGE: str(self.user.age),
+                AccountMenuState.MAJOR: self.user.major
+            }
+            self.current_buf = self.user.username
 
     def update_posts(self, new_posts):
         self.posts = new_posts

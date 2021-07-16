@@ -119,7 +119,7 @@ class TUI:
                     continue
 
                 if self.reload_posts:
-                    self.update_posts(self.client.get_all_posts())
+                    self.update_posts(self.client.get_all_posts(self.user.id))
                     self.reload_posts = False
 
                 display_func, input_func = self.display_states[self.state]
@@ -255,7 +255,7 @@ class TUI:
         if new_state == WindowState.REGISTER:
             self.waiting_for_continue_registration = False
         elif new_state == WindowState.FORUM_VIEW:
-            self.update_posts(self.client.get_all_posts())
+            self.update_posts(self.client.get_all_posts(self.user.id))
             self.user_cache = {}
         elif new_state == WindowState.ACCOUNT_MENU:
             self.buffers = {

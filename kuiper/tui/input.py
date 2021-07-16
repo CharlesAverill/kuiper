@@ -137,7 +137,7 @@ def inew_post(TUI, ch):
         TUI.update_state(WindowState.FORUM_VIEW)
     elif unctrl == "s" and TUI.sub_state == NewPostState.REVIEW_POST:
         # Submit post to database
-        if TUI.client.create_post(TUI.post_title, "\n".join(TUI.post_lines).strip(), TUI.user.id):
+        if TUI.client.create_post(TUI.post_title, "\n".join([line.strip() for line in TUI.post_lines]), TUI.user.id):
             TUI.sub_state = NewPostState.SUBMITTED
         else:
             TUI.flashing = "There was an error submitting your post"
@@ -157,7 +157,7 @@ def iaccount_menu(TUI, ch):
         if TUI.sub_state == AccountMenuState.VIEW_MY_POST:
             exit("View My Post")
         elif TUI.sub_state == AccountMenuState.DELETE_MY_POST:
-            if TUI.client.delete_post(TUI.user.post_id):
+            if TUI.client.delete_post(TUI.user.post_id, TUI.user.id):
                 TUI.flashing = "Post Deleted"
             else:
                 TUI.flashing = "Unable to delete your post. Are you sure you've made one?"

@@ -68,18 +68,20 @@ class Client:
         if response["STATUS"] == "SUCCESSFUL":
             return response
 
-    def get_post(self, post_id):
+    def get_post(self, post_id, user_id):
         response = self.send({
             "ACTION": "GET_USER",
-            "POST_ID": post_id
+            "POST_ID": post_id,
+            "USER_ID": user_id
         })
 
         if response["STATUS"] == "SUCCESSFUL":
             return response
 
-    def get_all_posts(self):
+    def get_all_posts(self, user_id):
         response = self.send({
-            "ACTION": "GET_ALL_POSTS"
+            "ACTION": "GET_ALL_POSTS",
+            "USER_ID": user_id
         })
 
         if response["STATUS"] == "SUCCESSFUL":
@@ -101,10 +103,11 @@ class Client:
 
         return response["STATUS"] == "SUCCESSFUL"
 
-    def delete_post(self, post_id):
+    def delete_post(self, post_id, user_id):
         response = self.send({
             "ACTION": "DELETE_POST",
-            "POST_ID": post_id
+            "POST_ID": post_id,
+            "USER_ID": user_id
         })
 
         return response["STATUS"] == "SUCCESSFUL"
@@ -113,7 +116,7 @@ class Client:
         response = self.send({
             "ACTION": "VERIFY_EMAIL",
             "EMAIL": email,
-            "USERNAME": username
+            "USERNAME": username,
         })
 
         if response["STATUS"] == "SUCCESSFUL":

@@ -1,10 +1,33 @@
 from .models import User, Post, Base
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import datetime
 import os
+import uuid
+
+
+logged_in = {}
+
+
+def is_logged_in(user_id):
+    global logged_in
+
+    remove = []
+    found = False
+
+    for k, v in logged_in.items():
+        if (datetime.datetime.now() - v).seconds / 60 > 15:  # 15 minute timeout
+            remove.append(k)
+        elif k == user_id:
+            logged_in[k] = datetime.datetime.now()
+            found = True
+
+    for k in remove:
+        del logged_in[k]
+
+    return found
 
 
 def init_db(cfg, delete_db=False):
@@ -24,6 +47,7 @@ def init_db(cfg, delete_db=False):
 def register(email, username, password, age, major, session):
     u = User()
 
+    u.id = str(uuid.uuid4())
     u.email = email
     u.username = username
     u.password = generate_password_hash(password)
@@ -41,13 +65,13 @@ def create_post(title, content, user_id, session):
     p.created_at = datetime.datetime.now()
     p.user_id = user_id
 
-    user = session.query(User).filter(User.id == int(user_id)).first()
+    user = session.query(User).filter(User.id == user_id).first()
 
     if not user:
         return False
 
     if user.post_id:
-        session.query(Post).filter(Post.user_id == int(user_id)).delete()
+        session.query(Post).filter(Post.user_id == user_id).delete()
 
     session.add(p)
     session.commit()
@@ -58,10 +82,14 @@ def create_post(title, content, user_id, session):
 
 
 def login(username, password, session):
+    global logged_in
+
     query = session.query(User).filter(User.username == username).first()
 
     if not query or not check_password_hash(query.password, password):
         return None
+
+    logged_in.update({query.id: datetime.datetime.now()})
 
     return query.json()
 
@@ -85,7 +113,7 @@ def get_user_by_email(email, session):
 
 
 def get_user_by_id(user_id, session):
-    query = session.query(User).filter(User.id == int(user_id)).first()
+    query = session.query(User).filter(User.id == user_id).first()
 
     if not query:
         return None
@@ -116,7 +144,7 @@ def get_all_posts(session):
 
 
 def update_user(user_id, new_values, session):
-    user = session.query(User).filter(User.id == int(user_id)).first()
+    user = session.query(User).filter(User.id == user_id).first()
 
     if not user:
         return False

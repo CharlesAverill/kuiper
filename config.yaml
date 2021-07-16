@@ -11,8 +11,8 @@ email_whitelist:
   - "kaverill82@gmail.com"
   - "charlesaverill20@gmail.com"
 
-server_email_address: None
-server_email_password: None
+server_email_address: "kuiper.emailservice@gmail.com"
+server_email_password: "nlzptjqanevkilam"
 server_email_smtp_addr: "smtp.gmail.com"
 server_email_smtp_port: 465
 

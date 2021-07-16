@@ -9,7 +9,7 @@ from . import Base
 
 
 class User(Base):
-    id = Column(Integer, primary_key=True)
+    id = Column(Text, primary_key=True)
     email = Column(Text)
     username = Column(Text(length=20))
     password = Column(Text)

@@ -199,6 +199,8 @@ def vforum(TUI):
                 TUI.window.addstr(idx + 4, len(item) + border_offset, dashes, curses.color_pair(4))
 
         # Post contents
+        if TUI.post_index >= len(TUI.posts) or TUI.post_index < 0:
+            TUI.post_index = len(TUI.psots) - 1
         current_post = TUI.posts[TUI.post_index]
 
         TUI.add_center_string(f"\"{current_post.title}\"", 1, min_x=border_20_percent, color_pair_index=1)

@@ -28,66 +28,68 @@ async def websocket_main_loop(websocket, path):
 
     response = {"STATUS": "UNSUCCESSFUL"}
 
-    if "USER_ID" in data and is_logged_in(data["USER_ID"]):
-        if data["ACTION"] == "CREATE_POST":
-            try:
-                create_post(data["TITLE"], data["CONTENT"], data["USER_ID"], sess)
-                response["STATUS"] = "SUCCESSFUL"
-            except Exception as e:
-                print(f"Error during post creation: {e}")
-        elif data["ACTION"] == "GET_POST":
-            query = get_post(data["POST_ID"], sess)
-            if query:
-                response.update(json.loads(query))
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "GET_ALL_POSTS":
-            dump = get_all_posts(sess)
-            response.update({"POSTS_JSON": dump})
-            response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "UPDATE_USER":
-            if update_user(data["USER_ID"], data, sess):
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "DELETE_POST":
-            if delete_post(data["POST_ID"], sess):
-                response["STATUS"] = "SUCCESSFUL"
-    else:
-        if data["ACTION"] == "LOGIN":
-            query = login(data["USERNAME"], data["PASSWORD"], sess)
-            if query:
-                response.update(json.loads(query))
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "GET_USER_USERNAME":
-            query = get_user_by_username(data["USERNAME"], sess)
-            if query:
-                response.update(json.loads(query))
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "GET_USER_EMAIL":
-            query = get_user_by_email(data["EMAIL"], sess)
-            if query:
-                response.update(json.loads(query))
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "GET_USER_ID":
+    if "ACTION" in data:
+        if data["ACTION"] == "GET_USER_ID" and "USER_ID" in data:
             query = get_user_by_id(data["USER_ID"], sess)
             if query:
                 response.update(json.loads(query))
                 response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "VERIFY_EMAIL":
-            code = verify_email(data["EMAIL"], data["USERNAME"])
-            if code is not None:
-                response["STATUS"] = "SUCCESSFUL"
-        elif data["ACTION"] == "CHECK_VERIFICATION_CODE":
-            success, verification = check_verification_code(data["EMAIL"], data["CODE"])
-            if not success:
-                response["ERROR_CODE"] = verification
-            else:
+        if "USER_ID" in data and is_logged_in(data["USER_ID"]):
+            if data["ACTION"] == "CREATE_POST":
                 try:
-                    register(data["EMAIL"], data["USERNAME"], data["PASSWORD"], data["AGE"], data["MAJOR"], sess)
+                    create_post(data["TITLE"], data["CONTENT"], data["USER_ID"], sess)
                     response["STATUS"] = "SUCCESSFUL"
                 except Exception as e:
-                    print(f"Error during registration: {e}")
+                    print(f"Error during post creation: {e}")
+            elif data["ACTION"] == "GET_POST":
+                query = get_post(data["POST_ID"], sess)
+                if query:
+                    response.update(json.loads(query))
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "GET_ALL_POSTS":
+                dump = get_all_posts(sess)
+                response.update({"POSTS_JSON": dump})
+                response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "UPDATE_USER":
+                if update_user(data["USER_ID"], data, sess):
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "DELETE_POST":
+                if delete_post(data["POST_ID"], sess):
+                    response["STATUS"] = "SUCCESSFUL"
+        else:
+            if data["ACTION"] == "LOGIN" and "USERNAME" in data and "PASSWORD" in data:
+                query = login(data["USERNAME"], data["PASSWORD"], sess)
+                if query:
+                    response.update(json.loads(query))
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "GET_USER_USERNAME" and "USERNAME" in data:
+                query = get_user_by_username(data["USERNAME"], sess)
+                if query:
+                    response.update(json.loads(query))
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "GET_USER_EMAIL" and "EMAIL" in data:
+                query = get_user_by_email(data["EMAIL"], sess)
+                if query:
+                    response.update(json.loads(query))
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "VERIFY_EMAIL" and "EMAIL" in data and "USERNAME" in data:
+                code = verify_email(data["EMAIL"], data["USERNAME"])
+                if code is not None:
+                    response["STATUS"] = "SUCCESSFUL"
+            elif data["ACTION"] == "CHECK_VERIFICATION_CODE" and all(x in data for x in
+                                                                     ["USERNAME", "EMAIL", "PASSWORD", "AGE", "MAJOR"]):
+                success, verification = check_verification_code(data["EMAIL"], data["CODE"])
+                if not success:
+                    response["ERROR_CODE"] = verification
+                else:
+                    try:
+                        register(data["EMAIL"], data["USERNAME"], data["PASSWORD"], data["AGE"], data["MAJOR"], sess)
+                        response["STATUS"] = "SUCCESSFUL"
+                    except Exception as e:
+                        print(f"Error during registration: {e}")
 
-    if not quiet:
-        print(f" - {response['STATUS']} at {datetime.datetime.now().strftime(date_format)}")
+        if not quiet:
+            print(f" - {response['STATUS']} at {datetime.datetime.now().strftime(date_format)}")
 
     await websocket.send(json.dumps(response))
 

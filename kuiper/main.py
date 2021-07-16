@@ -101,6 +101,7 @@ def main():
     else:
         client = Client(cfg["access_host"], cfg["port"])
         start_tui(client, cfg)
+        exit("Thank you for using Kuiper!")
 
 
 if __name__ == "__main__":

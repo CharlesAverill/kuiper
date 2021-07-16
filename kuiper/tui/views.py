@@ -219,7 +219,7 @@ def vforum(TUI):
                               color_pair_index=4)
 
     # Command bar (spread across comments section bottom)
-    commands = ["ENTER = Select Post", "[r]eload Feed", "[n]ew Post", "View My [p]ost",
+    commands = ["ENTER = Select Post", "[r]eload Feed", "[n]ew Post",
                 "[a]ccount Menu", "[l]ogout", "[h]elp", "ESC = exit"]
     commands_len = len("".join(commands))
     n_whitespace_chars = int((TUI.width - border_20_percent - commands_len) / len(commands)) - 1
@@ -291,7 +291,7 @@ def vnew_post(TUI):
 
 
 def vaccount_menu(TUI):
-    """Display login prompt"""
+    """Display account menu"""
     TUI.window.erase()
     TUI.window.box()
 
@@ -361,5 +361,41 @@ def vaccount_menu(TUI):
         TUI.shorthand_input()
 
     TUI.input_verification = curses.ascii.isalnum
+
+    TUI.window.refresh()
+
+
+def vhelp(TUI):
+    """Display account menu"""
+    TUI.window.erase()
+    TUI.window.box()
+
+    TUI.add_center_string("Help Menu", 1, color_pair_index=4)
+
+    TUI.window.addstr(3, 3, "How do I navigate?", curses.color_pair(4))
+    TUI.window.addstr(3, 22, "Menu navigation is performed with the up and down arrow keys. "
+                             "The forum view has hotkeys listed at the bottom", curses.color_pair(1))
+    TUI.window.addstr(4, 22, " of the screen. For example, \"[l]ogout\" denotes that the \"l\" key logs you out.", curses.color_pair(1))
+
+    TUI.window.addstr(6, 3, "How do I exit the program?", curses.color_pair(4))
+    TUI.window.addstr(6, 30, "The ESC key will completely exit the client on every menu", curses.color_pair(1))
+
+    TUI.window.addstr(8, 3, "Are there any command line options?", curses.color_pair(4))
+    TUI.window.addstr(8, 39, "Yes, run", curses.color_pair(1))
+    TUI.window.addstr(8, 48, "kuiper -h", curses.color_pair(2))
+    TUI.window.addstr(8, 58, "to view command line options and their descriptions", curses.color_pair(1))
+
+    TUI.window.addstr(10, 3, "How do I request a feature or report a bug?", curses.color_pair(4))
+    TUI.window.addstr(10, 47, "Visit https://github.com/CharlesAverill/kuiper/issues/new "
+                              "to submit a new issue", curses.color_pair(1))
+    TUI.window.addstr(11, 47, "with the tag \"enhancement\"", curses.color_pair(1))
+
+    TUI.window.addstr(13, 3, "How do I support the project?", curses.color_pair(4))
+    TUI.window.addstr(13, 33, "If you'd like to support the project, please consider contributing to the codebase!",
+                      curses.color_pair(1))
+    TUI.window.addstr(14, 33, "Otherwise, if you'd like to buy me a coffee or pay for some server time, email me!",
+                      curses.color_pair(1))
+
+    TUI.add_center_string("Press any key to return to the Forum", TUI.height - 2, color_pair_index=4)
 
     TUI.window.refresh()

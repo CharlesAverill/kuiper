@@ -57,7 +57,8 @@ class TUI:
             WindowState.REGISTER: (vregister, iregister),
             WindowState.FORUM_VIEW: (vforum, iforum),
             WindowState.NEW_POST_VIEW: (vnew_post, inew_post),
-            WindowState.ACCOUNT_MENU: (vaccount_menu, iaccount_menu)
+            WindowState.ACCOUNT_MENU: (vaccount_menu, iaccount_menu),
+            WindowState.HELP_MENU: (vhelp, ihelp)
         }
 
         self.states_lists = states_lists

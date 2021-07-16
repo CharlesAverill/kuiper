@@ -28,7 +28,7 @@ def ilogin(TUI, ch):
         elif TUI.sub_state == LoginState.REGISTER:
             TUI.update_state(WindowState.REGISTER)
         elif TUI.sub_state == LoginState.EXIT:
-            exit("Thank you for using kuiper!")
+            exit("Thank you for using Kuiper!")
         else:
             TUI.shift_sub_states(curses.KEY_DOWN, up=False)
 
@@ -83,11 +83,9 @@ def iforum(TUI, ch):
         elif unctrl == "c":
             exit("Comment")
         elif unctrl == "h":
-            exit("Help menu")
+            TUI.update_state(WindowState.HELP_MENU)
         elif unctrl == "a":
             TUI.update_state(WindowState.ACCOUNT_MENU)
-        elif unctrl == "p":
-            exit("View post")
         elif unctrl == "r":
             TUI.reload_posts = True
             TUI.user_cache = {}
@@ -143,8 +141,10 @@ def iaccount_menu(TUI, ch):
             else:
                 TUI.flashing = "Unable to delete your post. Are you sure you've made one?"
         elif TUI.sub_state == AccountMenuState.SUBMIT_UPDATES:
-            rp = TUI.buffers[AccountMenuState.RESET_PASSWORD]
-            cp = TUI.buffers[AccountMenuState.CONFIRM_PASSWORD]
+            rp = TUI.buffers[AccountMenuState.RESET_PASSWORD] if AccountMenuState.RESET_PASSWORD in TUI.buffers \
+                else None
+            cp = TUI.buffers[AccountMenuState.CONFIRM_PASSWORD] if AccountMenuState.CONFIRM_PASSWORD in TUI.buffers \
+                else None
             if (rp or cp) and rp != cp:
                 TUI.flashing = "Passwords do not match"
             else:
@@ -168,3 +168,8 @@ def iaccount_menu(TUI, ch):
             TUI.update_state(WindowState.FORUM_VIEW)
         else:
             TUI.shift_sub_states(curses.KEY_DOWN, up=False)
+
+
+def ihelp(TUI, ch):
+    str(ch)
+    TUI.update_state(WindowState.FORUM_VIEW)

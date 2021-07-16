@@ -18,7 +18,8 @@ def vlogin(TUI):
 
     # Header
     TUI.add_center_string(f"Kuiper {__version__}", 1, color_pair_index=4)
-    TUI.add_center_string(f"A terminal-based dating application for {TUI.cfg['org_name']} Members", 2, color_pair_index=4)
+    TUI.add_center_string(f"A terminal-based dating application for {TUI.cfg['org_name']} Members", 2,
+                          color_pair_index=4)
     TUI.add_center_string("Charles Averill - charles.averill@utdallas.edu - "
                           "https://github.com/CharlesAverill/kuiper", 3, color_pair_index=4)
 
@@ -130,7 +131,11 @@ def vregister(TUI):
         TUI.input_verification = curses.ascii.isprint
     else:
         TUI.max_input_len = 20
-        TUI.input_verification = curses.ascii.isalnum
+
+        def alnum_plus_space(c):
+            return curses.ascii.unctrl(c) in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+
+        TUI.input_verification = alnum_plus_space
 
     TUI.window.refresh()
 
@@ -384,7 +389,8 @@ def vhelp(TUI):
     TUI.window.addstr(3, 3, "How do I navigate?", curses.color_pair(4))
     TUI.window.addstr(3, 22, "Menu navigation is performed with the up and down arrow keys. "
                              "The forum view has hotkeys listed at the bottom", curses.color_pair(1))
-    TUI.window.addstr(4, 22, " of the screen. For example, \"[l]ogout\" denotes that the \"l\" key logs you out.", curses.color_pair(1))
+    TUI.window.addstr(4, 22, " of the screen. For example, \"[l]ogout\" denotes that the \"l\" key logs you out.",
+                      curses.color_pair(1))
 
     TUI.window.addstr(6, 3, "How do I exit the program?", curses.color_pair(4))
     TUI.window.addstr(6, 30, "The ESC key will completely exit the client on every menu", curses.color_pair(1))

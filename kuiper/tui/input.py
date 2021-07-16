@@ -42,18 +42,34 @@ def iregister(TUI, ch):
     if ch == curses.KEY_ENTER or unctrl == "^I" or unctrl == "^J":
         if TUI.sub_state == RegisterState.REGISTER:
             vals = TUI.buffers
-            validation = validate_user_registration(vals, TUI.client, TUI.cfg)
-            if validation == "valid":
-                # Submit registration to database
-                TUI.client.register(vals[RegisterState.EMAIL],
-                                    vals[RegisterState.USERNAME],
-                                    vals[RegisterState.PASSWORD],
-                                    vals[RegisterState.AGE],
-                                    vals[RegisterState.MAJOR])
-                # Go back to login page
-                TUI.update_state(WindowState.LOGIN)
+            if TUI.waiting_for_continue_registration:
+                verification = TUI.client.check_verification_code(vals[RegisterState.EMAIL],
+                                                                  vals[RegisterState.USERNAME],
+                                                                  vals[RegisterState.PASSWORD],
+                                                                  vals[RegisterState.AGE],
+                                                                  vals[RegisterState.MAJOR],
+                                                                  vals[RegisterState.REGISTRATION_CODE])
+                if not verification:
+                    TUI.flashing = "Unknown error occurred"
+                    return
+                elif type(verification) is not str:
+                    # Go back to login page
+                    TUI.update_state(WindowState.LOGIN)
+                elif verification != "Code does not match":
+                    vals[RegisterState.REGISTRATION_CODE] = ""
+                    TUI.client.verify_email(vals[RegisterState.EMAIL],
+                                            vals[RegisterState.USERNAME])
+                    TUI.waiting_for_continue_registration = True
+                else:
+                    TUI.flashing = verification
             else:
-                TUI.flashing = validation
+                validation = validate_user_registration(vals, TUI.client, TUI.cfg)
+                if validation == "valid":
+                    TUI.client.verify_email(vals[RegisterState.EMAIL],
+                                            vals[RegisterState.USERNAME])
+                    TUI.waiting_for_continue_registration = True
+                else:
+                    TUI.flashing = validation
         elif TUI.sub_state == RegisterState.BACK_TO_LOGIN:
             TUI.update_state(WindowState.LOGIN)
         else:

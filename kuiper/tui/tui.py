@@ -87,6 +87,8 @@ class TUI:
 
         self.user_cache = {}
 
+        self.waiting_for_continue_registration = False
+
     def run(self):
         """Continue running the TUI until get interrupted"""
         try:
@@ -250,7 +252,9 @@ class TUI:
         self.sub_state = None
         self.state = new_state
 
-        if new_state == WindowState.FORUM_VIEW:
+        if new_state == WindowState.REGISTER:
+            self.waiting_for_continue_registration = False
+        elif new_state == WindowState.FORUM_VIEW:
             self.update_posts(self.client.get_all_posts())
             self.user_cache = {}
         elif new_state == WindowState.ACCOUNT_MENU:

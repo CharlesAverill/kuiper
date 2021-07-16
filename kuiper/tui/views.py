@@ -18,7 +18,7 @@ def vlogin(TUI):
 
     # Header
     TUI.add_center_string(f"Kuiper {__version__}", 1, color_pair_index=4)
-    TUI.add_center_string("A terminal-based dating application for UTD Students", 2, color_pair_index=4)
+    TUI.add_center_string(f"A terminal-based dating application for {TUI.cfg['org_name']} Members", 2, color_pair_index=4)
     TUI.add_center_string("Charles Averill - charles.averill@utdallas.edu - "
                           "https://github.com/CharlesAverill/kuiper", 3, color_pair_index=4)
 
@@ -97,17 +97,26 @@ def vregister(TUI):
     TUI.window.addstr(9, 3, "Major:", curses.color_pair(color_pair))
 
     # Register button
-    TUI.window.addstr(11, 3, "Register", curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
+    TUI.window.addstr(11, 3,
+                      "Register" if not TUI.waiting_for_continue_registration else "Submit Verification Code",
+                      curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
+
+    # Registration Code label and field
+    color_pair = 2 if TUI.sub_state == RegisterState.REGISTRATION_CODE else 1
+    if RegisterState.REGISTRATION_CODE in TUI.buffers.keys():
+        TUI.window.addstr(12, 25, TUI.buffers[RegisterState.REGISTRATION_CODE], curses.color_pair(color_pair))
+    TUI.window.addstr(12, 3, "Registration Code:", curses.color_pair(color_pair))
 
     # Back to Login screen
-    TUI.window.addstr(12, 3, "Back to Login",
+    TUI.window.addstr(14, 3, "Back to Login",
                       curses.color_pair(2 if TUI.sub_state == RegisterState.BACK_TO_LOGIN else 1))
 
     TUI.reading_shorthand_input = TUI.sub_state in [RegisterState.USERNAME,
                                                     RegisterState.PASSWORD,
                                                     RegisterState.EMAIL,
                                                     RegisterState.AGE,
-                                                    RegisterState.MAJOR]
+                                                    RegisterState.MAJOR,
+                                                    RegisterState.REGISTRATION_CODE]
     TUI.shorthand_input_password_mode = TUI.sub_state == RegisterState.PASSWORD
 
     if TUI.reading_shorthand_input:
@@ -219,7 +228,7 @@ def vforum(TUI):
                               color_pair_index=4)
 
     # Command bar (spread across comments section bottom)
-    commands = ["ENTER = Select Post", "[r]eload Feed", "[n]ew Post",
+    commands = ["ENTER = View User", "[r]eload Feed", "[n]ew Post",
                 "[a]ccount Menu", "[l]ogout", "[h]elp", "ESC = exit"]
     commands_len = len("".join(commands))
     n_whitespace_chars = int((TUI.width - border_20_percent - commands_len) / len(commands)) - 1

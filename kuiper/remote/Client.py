@@ -31,18 +31,6 @@ class Client:
 
         return response["STATUS"] == "SUCCESSFUL"
 
-    def register(self, email, username, password, age, major):
-        response = self.send({
-            "ACTION": "REGISTER",
-            "EMAIL": email,
-            "USERNAME": username,
-            "PASSWORD": password,
-            "AGE": age,
-            "MAJOR": major
-        })
-
-        return response["STATUS"] == "SUCCESSFUL"
-
     def create_post(self, title, content, user_id):
         response = self.send({
             "ACTION": "CREATE_POST",
@@ -120,3 +108,31 @@ class Client:
         })
 
         return response["STATUS"] == "SUCCESSFUL"
+
+    def verify_email(self, email, username):
+        response = self.send({
+            "ACTION": "VERIFY_EMAIL",
+            "EMAIL": email,
+            "USERNAME": username
+        })
+
+        if response["STATUS"] == "SUCCESSFUL":
+            return True
+
+        return None
+
+    def check_verification_code(self, email, username, password, age, major, code):
+        response = self.send({
+            "ACTION": "CHECK_VERIFICATION_CODE",
+            "EMAIL": email,
+            "USERNAME": username,
+            "PASSWORD": password,
+            "AGE": age,
+            "MAJOR": major,
+            "CODE": code
+        })
+
+        if response["STATUS"] == "SUCCESSFUL":
+            return True
+
+        return response["ERROR_CODE"]

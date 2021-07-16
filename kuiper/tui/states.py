@@ -33,7 +33,9 @@ class RegisterState(Enum):
     MAJOR = 4
 
     REGISTER = 5
-    BACK_TO_LOGIN = 6
+    REGISTRATION_CODE = 6
+
+    BACK_TO_LOGIN = 7
 
 
 class NewPostState(Enum):
@@ -75,6 +77,7 @@ states_dicts = {
         RegisterState.PASSWORD: "password",
         RegisterState.AGE: "age",
         RegisterState.MAJOR: "major",
+        RegisterState.REGISTRATION_CODE: "registration_code",
         RegisterState.REGISTER: None,
         RegisterState.BACK_TO_LOGIN: None
     },
@@ -110,6 +113,7 @@ states_lists = {
         RegisterState.AGE,
         RegisterState.MAJOR,
         RegisterState.REGISTER,
+        RegisterState.REGISTRATION_CODE,
         RegisterState.BACK_TO_LOGIN
     ],
     WindowState.NEW_POST_VIEW: [

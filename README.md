@@ -43,6 +43,9 @@ and call `kuiper -l config.yaml`
 | access_host | "35.172.42.184" | The address to the server the client will ping. The defualt value is the static IP address of Kuiper's main server |
 | db_path | "kuiper.db" | The path to the server's user and post database |
 | required_email_suffix | "@utdallas.edu" | The email suffix required during registration. For no requirement, set to `""` |
+| org_name | "UTD" | The organization name to be displayed at login and registration |
+| server_email_username/password | None/None | The login information for the email the server will use to send email verification codes |
+| server_email_smtp_addr/port | "smtp.gmail.com"/465 | The SMTP address/port used to send emails |
 | text_editor | "vim" | The text editor called via the `subprocess` module to write posts and comments |
 
 

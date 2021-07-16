@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import json
 import random
 import smtplib
@@ -7,6 +6,7 @@ import websockets
 
 from email.mime.text import MIMEText
 from ..db import *
+from ..tui.utils import validate_email
 
 sess = None
 quiet = False
@@ -124,7 +124,10 @@ def verify_email(email, username):
 
     if not cfg["server_email_address"]:
         print("Email verification not set up!")
-        return
+        return False, "Email verification not set up!"
+
+    if email not in cfg["email_whitelist"] or not validate_email(email, cfg):
+        return False, "That domain is not permitted"
 
     try:
         code = random.randint(10000, 99999)

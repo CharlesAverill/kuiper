@@ -21,11 +21,11 @@ def validate_number(num):
         return False
 
 
-def validate_user_registration(vals, client, cfg):
+def validate_user_registration(vals, client):
     for key, value in zip(vals.keys(), vals.values()):
         if len(value) == 0 and key not in (RegisterState.REGISTER, RegisterState.BACK_TO_LOGIN):
             return "All fields are mandatory"
-    if not validate_email(vals[RegisterState.EMAIL], cfg):
+    if not len(vals[RegisterState.EMAIL]):
         return "Email is not valid"
     if len(vals[RegisterState.USERNAME]) < 5:
         return "Username must be at least 5 characters and end in '@utdallas.edu'"

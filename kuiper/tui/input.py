@@ -43,6 +43,10 @@ def iregister(TUI, ch):
         if TUI.sub_state == RegisterState.REGISTER:
             vals = TUI.buffers
             if TUI.waiting_for_continue_registration:
+                if RegisterState.REGISTRATION_CODE not in vals:
+                    TUI.flashing = "Please enter your verification code"
+                    return
+
                 verification = TUI.client.check_verification_code(vals[RegisterState.EMAIL],
                                                                   vals[RegisterState.USERNAME],
                                                                   vals[RegisterState.PASSWORD],
@@ -63,11 +67,12 @@ def iregister(TUI, ch):
                 else:
                     TUI.flashing = verification
             else:
-                validation = validate_user_registration(vals, TUI.client, TUI.cfg)
+                validation = validate_user_registration(vals, TUI.client)
                 if validation == "valid":
                     TUI.client.verify_email(vals[RegisterState.EMAIL],
                                             vals[RegisterState.USERNAME])
                     TUI.waiting_for_continue_registration = True
+                    TUI.flashing = f"Registration code sent. Be sure to check your spam."
                 else:
                     TUI.flashing = validation
         elif TUI.sub_state == RegisterState.BACK_TO_LOGIN:

@@ -7,6 +7,10 @@ db_path: "kuiper.db"
 required_email_suffix: "@utdallas.edu"
 org_name: "UTD"
 
+email_whitelist:
+  - "kaverill82@gmail.com"
+  - "charlesaverill20@gmail.com"
+
 server_email_address: None
 server_email_password: None
 server_email_smtp_addr: "smtp.gmail.com"

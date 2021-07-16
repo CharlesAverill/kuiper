@@ -99,7 +99,7 @@ def vregister(TUI):
 
     # Register button
     TUI.window.addstr(11, 3,
-                      "Register" if not TUI.waiting_for_continue_registration else "Submit Verification Code",
+                      "Register" if not TUI.waiting_for_continue_registration else "Submit Registration Code",
                       curses.color_pair(2 if TUI.sub_state == RegisterState.REGISTER else 1))
 
     # Registration Code label and field

@@ -26,7 +26,8 @@ class User(Base):
         self.created_at = datetime.datetime.now()
 
     def from_json(self, data):
-        self.id = data["USER_ID"]
+        if "USER_ID" in data:
+            self.id = data["USER_ID"]
         self.email = data["EMAIL"]
         self.username = data["USERNAME"]
         self.age = int(data["AGE"])

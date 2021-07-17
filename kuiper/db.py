@@ -153,6 +153,8 @@ def update_user(user_id, new_values, session):
 
     for key in new_values.keys():
         if key == "USERNAME":
+            post = session.query(Post).filter(Post.user_username == user.username).first()
+            post.user_username = new_values[key]
             user.username = new_values[key]
         elif key == "AGE":
             user.age = new_values[key]

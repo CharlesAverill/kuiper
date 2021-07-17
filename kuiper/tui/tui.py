@@ -321,7 +321,12 @@ class TUI:
 
             # Truncate lines and columns
             self.post_title = self.post_lines[0][:self.post_char_max]
-            self.post_lines = [line[:self.post_char_max] for line in self.post_lines][1:self.post_line_max]
+            self.post_lines = self.post_lines[1:]
+            for i in range(len(self.post_lines) - 1):
+                line = self.post_lines[i]
+                line = line[:self.post_char_max]
+                self.post_lines[i] = line
+            self.post_lines = self.post_lines[:self.post_line_max]
 
             return True
         except PermissionError:

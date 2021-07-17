@@ -186,7 +186,10 @@ def vforum(TUI):
 
     if TUI.posts:
         # List of posts
-        for idx, item in enumerate(TUI.items[TUI.top:TUI.top + TUI.max_lines]):
+        temp = TUI.top + TUI.max_lines
+        while temp % 3 != 0:
+            temp -= 1
+        for idx, item in enumerate(TUI.items[TUI.top:temp]):
             # Highlight the current cursor line
             border_offset = 2 if TUI.current <= idx <= TUI.current + 2 else 1
             TUI.window.addstr(idx + 4, border_offset, item[:border_20_percent - border_offset],
@@ -224,10 +227,11 @@ def vforum(TUI):
             TUI.window.addstr(4, field_start, current_post.time_left[:TUI.width - field_start - 1],
                               curses.color_pair(1))
 
-            for idx, line in enumerate(current_post.content.strip().split("\n")[::2]):
+            for idx, line in enumerate(current_post.content.strip().split("\n")):
                 if 6 + idx < int(TUI.height / 2):
                     TUI.window.addstr(6 + idx, field_start, line.strip()[:TUI.width - border_20_percent - 13],
                                       curses.color_pair(1))
+            # exit(current_post.content.strip().split("\n")[::2])
         else:
             TUI.add_center_string("Couldn't track down the user for this post", 1, min_x=border_20_percent)
     else:

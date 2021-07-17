@@ -39,7 +39,7 @@ def init_db(cfg, delete_db=False):
         Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    sess = sessionmaker(engine)
+    sess = sessionmaker(engine, autoflush=False)
 
     return sess()
 

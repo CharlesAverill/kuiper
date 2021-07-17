@@ -20,7 +20,7 @@ def ilogin(TUI, ch):
                 TUI.flashing = "All fields are mandatory"
             else:
                 login_response = TUI.client.login(TUI.buffers[LoginState.USERNAME], TUI.buffers[LoginState.PASSWORD])
-                if login_response["STATUS"] == "SUCCESSFUL":
+                if login_response and login_response["STATUS"] == "SUCCESSFUL":
                     u = User()
                     u.from_json(login_response)
                     TUI.user = u

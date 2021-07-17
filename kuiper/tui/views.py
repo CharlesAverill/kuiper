@@ -208,12 +208,12 @@ def vforum(TUI):
         label_start = border_20_percent + 2
         field_start = border_20_percent + 13
 
-        if current_post.user_id in TUI.user_cache:
-            user = TUI.user_cache[current_post.user_id]
+        if current_post.user_username in TUI.user_cache:
+            user = TUI.user_cache[current_post.user_username]
         else:
             user = User()
-            user.from_json(TUI.client.get_user_by_id(current_post.user_id))
-            TUI.user_cache.update({current_post.user_id: user})
+            user.from_json(TUI.client.get_user_by_username(current_post.user_username))
+            TUI.user_cache.update({current_post.user_username: user})
 
         if user:
             TUI.window.addstr(2, label_start, "Username:  ", curses.color_pair(4))

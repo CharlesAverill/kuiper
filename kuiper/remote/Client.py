@@ -31,11 +31,12 @@ class Client:
 
         return response["STATUS"] == "SUCCESSFUL"
 
-    def create_post(self, title, content, user_id):
+    def create_post(self, title, content, username, user_id):
         response = self.send({
             "ACTION": "CREATE_POST",
             "TITLE": title,
             "CONTENT": content,
+            "USERNAME": username,
             "USER_ID": user_id
         })
 

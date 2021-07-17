@@ -37,7 +37,7 @@ async def websocket_main_loop(websocket, path):
         if "USER_ID" in data and is_logged_in(data["USER_ID"]):
             if data["ACTION"] == "CREATE_POST":
                 try:
-                    create_post(data["TITLE"], data["CONTENT"], data["USER_ID"], sess)
+                    create_post(data["TITLE"], data["CONTENT"], data["USER_ID"], data["USERNAME"], sess)
                     response["STATUS"] = "SUCCESSFUL"
                 except Exception as e:
                     print(f"Error during post creation: {e}")

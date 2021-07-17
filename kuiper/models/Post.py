@@ -18,7 +18,7 @@ class Post(Base):
     content = Column(UnicodeText, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=now())
 
-    user_id = Column(Integer)
+    user_username = Column(UnicodeText)
 
     __tablename__ = "post"
 
@@ -37,7 +37,7 @@ class Post(Base):
         self.title = data["TITLE"].strip()
         self.content = data["CONTENT"].strip()
         self.created_at = datetime.datetime.strptime(data["CREATED_AT"], date_format)
-        self.user_id = data["USER_ID"]
+        self.user_username = data["USERNAME"]
 
     def json(self):
         return json.dumps({
@@ -45,10 +45,10 @@ class Post(Base):
             "TITLE": self.title,
             "CONTENT": self.content,
             "CREATED_AT": self.created_at.strftime(date_format),
-            "USER_ID": self.user_id
+            "USERNAME": self.user_username
         })
 
     def __str__(self):
-        return f"{self.user_id}\n" \
+        return f"{self.user_username}\n" \
                f"{self.title}\n" \
                f"{self.time_left[:2]}H"

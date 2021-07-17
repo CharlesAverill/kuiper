@@ -137,7 +137,7 @@ def inew_post(TUI, ch):
         TUI.update_state(WindowState.FORUM_VIEW)
     elif unctrl == "s" and TUI.sub_state == NewPostState.REVIEW_POST:
         # Submit post to database
-        if TUI.client.create_post(TUI.post_title, "\n".join([line.strip() for line in TUI.post_lines]), TUI.user.id):
+        if TUI.client.create_post(TUI.post_title, "\n".join([line.strip() for line in TUI.post_lines]), TUI.user.username, TUI.user.id):
             TUI.sub_state = NewPostState.SUBMITTED
         else:
             TUI.flashing = "There was an error submitting your post"

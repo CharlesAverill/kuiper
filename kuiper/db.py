@@ -58,12 +58,12 @@ def register(email, username, password, age, major, session):
     session.commit()
 
 
-def create_post(title, content, user_id, session):
+def create_post(title, content, user_id, username, session):
     p = Post()
     p.title = title
     p.content = content
     p.created_at = datetime.datetime.now()
-    p.user_id = user_id
+    p.user_username = username
 
     user = session.query(User).filter(User.id == user_id).first()
 
@@ -71,7 +71,7 @@ def create_post(title, content, user_id, session):
         return False
 
     if user.post_id:
-        session.query(Post).filter(Post.user_id == user_id).delete()
+        session.query(Post).filter(Post.user_username == username).delete()
 
     session.add(p)
     session.commit()

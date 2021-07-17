@@ -161,6 +161,8 @@ def update_user(user_id, new_values, session):
         elif key == "PASSWORD":
             user.password = generate_password_hash(new_values[key])
 
+    user.id = user_id
+
     session.commit()
 
     return True

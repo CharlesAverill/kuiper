@@ -29,7 +29,8 @@ class Client:
             "PASSWORD": password
         })
 
-        return response["STATUS"] == "SUCCESSFUL"
+        if response["STATUS"] == "SUCCESSFUL":
+            return response
 
     def create_post(self, title, content, username, user_id):
         response = self.send({

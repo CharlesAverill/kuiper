@@ -18,13 +18,15 @@ def ilogin(TUI, ch):
         if TUI.sub_state == LoginState.LOGIN:
             if validate_login(TUI.buffers):
                 TUI.flashing = "All fields are mandatory"
-            elif TUI.client.login(TUI.buffers[LoginState.USERNAME], TUI.buffers[LoginState.PASSWORD]):
-                u = User()
-                u.from_json(TUI.client.get_user_by_username(TUI.buffers[LoginState.USERNAME]))
-                TUI.user = u
-                TUI.update_state(WindowState.FORUM_VIEW)
             else:
-                TUI.flashing = "No account found with that information"
+                login_response = TUI.client.login(TUI.buffers[LoginState.USERNAME], TUI.buffers[LoginState.PASSWORD])
+                if login_response["STATUS"] == "SUCCESSFUL":
+                    u = User()
+                    u.from_json(login_response)
+                    TUI.user = u
+                    TUI.update_state(WindowState.FORUM_VIEW)
+                else:
+                    TUI.flashing = "No account found with that information"
         elif TUI.sub_state == LoginState.REGISTER:
             TUI.update_state(WindowState.REGISTER)
         elif TUI.sub_state == LoginState.EXIT:

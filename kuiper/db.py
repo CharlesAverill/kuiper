@@ -96,6 +96,7 @@ def login(username, password, session):
 
 def get_user_by_username(username, session):
     query = session.query(User).filter(User.username == username).first()
+    query.id = None
 
     if not query:
         return None
